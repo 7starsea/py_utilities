@@ -1,5 +1,9 @@
 # Prerequisites
 *.d
+# build related cache
+__pycache__/
+*.py[cod]
+.DS_Store
 
 # Compiled Object files
 *.slo
@@ -12,6 +16,7 @@
 *.pch
 
 # Compiled Dynamic libraries
+lib*.a
 *.so
 *.dylib
 *.dll

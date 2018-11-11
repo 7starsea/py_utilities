@@ -16,5 +16,10 @@ python update_json_file.py --update-type keep_exist examples/test-old.json examp
 
 python update_json_file.py --update-type overwrite_exist examples/test-old.json examples/test.json
 
+python CppGenerator/CPPCSVGenerator.py examples/struct.h
+
+# # We internally use [RapidJson|https://github.com/Tencent/rapidjson/] for cpp parsing Json file
+
+python CppGenerator/CPPJsonGenerator.py examples/struct.h
 
 
