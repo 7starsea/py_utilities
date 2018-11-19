@@ -1,6 +1,3 @@
-# coding=utf-8
-#####!/usr/bin/python
-#######! /usr/bin/python
 # -*- coding: utf-8 -*-
 from sys import platform as sys_platform
 import os.path
@@ -117,6 +114,11 @@ bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s 
 """
 
         for key in keys:
+            if key[2] != 'char' and 1 == self.get_property(struct_id, key[1], 'array'):
+                print('>>> We current does not support %s array %s[].' % (key[2], key[2]))
+                continue
+                # exit(-1)
+
             # DisplayProperty : DataStructProperty
             tmpKey = key[1].replace(".", "_")
 
@@ -132,11 +134,11 @@ bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s 
             # prop = self.get_property(struct_id, key[1])
             # print(prop)
 
-            if key[2] in ['int', 'short', 'unsigned short', 'unsigned int']:
+            if key[2] in ['int', 'short', 'unsigned short', 'unsigned int', 'long long']:
                 cpp += (int_fmt % (key[1], key[2], key[2], tmpKey, tmpKey, key[1], key[2], tmpKey, has_valid_type, has_member))
             elif key[2] in ['enum']:
                 cpp += (enum_fmt % (key[1], key[3], tmpKey, tmpKey, key[1], key[3], tmpKey, has_valid_type, has_member))
-            elif key[2] in ['double', 'float']:
+            elif key[2] in ['double', 'float', 'long double']:
                 cpp += (double_fmt % (key[1], key[2], key[2], tmpKey, tmpKey, key[1], key[2], tmpKey, has_valid_type, has_member))
             elif key[2] == "bool":
                 cpp += (bool_fmt % (key[1], tmpKey, tmpKey, key[1], tmpKey, has_valid_type, has_member))
@@ -221,11 +223,16 @@ void SaveJsonParametersHelper<%s>(rapidjson::PrettyWriter<rapidjson::FileWriteSt
 """
 
         for key in keys:
+            if key[2] != 'char' and 1 == self.get_property(struct_id, key[1], 'array'):
+                print('>>> We current does not support %s array %s[].' % (key[2], key[2]))
+                continue
+                # exit(-1)
+
             # DisplayProperty : DataStructProperty
             tmpKey = key[1].replace(".", "_")
-            if key[2] in ['int', 'short', 'unsigned short', 'unsigned int', 'enum']:
+            if key[2] in ['int', 'short', 'unsigned short', 'unsigned int', 'enum', 'long long']:
                 cpp += (int_fmt % (tmpKey, key[1]))
-            elif key[2] in ['double', 'float']:
+            elif key[2] in ['double', 'float', 'long double']:
                 cpp += (double_fmt % (tmpKey, key[1]))
             elif key[2] == "bool":
                 cpp += (bool_fmt % (tmpKey, key[1]))

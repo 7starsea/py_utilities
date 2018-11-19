@@ -1,6 +1,3 @@
-# coding=utf-8
-#####!/usr/bin/python
-#######! /usr/bin/python
 # -*- coding: utf-8 -*-
 from sys import platform as sys_platform
 import os.path
@@ -8,56 +5,67 @@ from shutil import copyfile
 import re
 import datetime
 import subprocess
+import functools
 from CPPGeneratorBase import CPPGeneratorBase, ensure_exists_dir
 
 
-def _csv_writer_header(keys, struct_id):
+def _csv_writer_header(keys, struct_id, get_property=None):
     source = "template<>\nstd::string CSVWriteRtnHead<%s>()\n{\n\tstd::string header;\n" % struct_id
-    last_key = keys.pop()
-    for key in keys:
+    num = len(keys)
+    for j in range(num):
+        key = keys[j]
         title = key[1].title().replace("_", "").replace("-", "")
-        source += "\theader.append(\"%s\");\theader.push_back(CSV_SPLITTER_SYMBOL);\n" % title;
-        
-    title = last_key[1].title().replace("_", "").replace("-", "")
-    source += "\theader.append(\"%s\");\theader.push_back('\\n');\n" % title;
+
+        is_array = False
+        if get_property and callable(get_property):
+            if key[2] != 'char' and 1 == get_property(key[1], 'array'):
+                is_array = True
+        sep = 'CSV_SPLITTER_SYMBOL' if j != num - 1 else "'\\n'"
+        if is_array:
+            array_size = int(get_property(key[1], 'array_size'))
+            assert array_size > 0
+            for i in range(array_size):
+                if j == num - 1 and i == array_size - 1:
+                    sep = "'\\n';"
+                source += "\theader.append(\"%s%s\");\theader.push_back(%s);\n" % (title, i + 1, sep)
+        else:
+            source += "\theader.append(\"%s\");\theader.push_back(%s);\n" % (title, sep)
 
     source += "\n\treturn header;\n}\n"
-    keys.append(last_key)
 
-    source += "template<>\nvoid Internal_CSVWriteHead<%s>(std::ofstream &ofs)" % struct_id
+    source += "template<>\nvoid Internal_CSVWriteHead<%s>(std::ostream &ofs)" % struct_id
     source += "\n{\n\tofs << CSVWriteRtnHead<%s>();" % struct_id
     source += "\n}\n"
-    # source += "\n{\n\tofs"
-    # last_key = keys.pop()
-    # for key in keys:
-        # title = key[1].title().replace("_", "").replace("-", "")
-        # source += '<<"%s"<<CSV_SPLITTER_SYMBOL\n\t\t' % title
-        # # source += "<<\"" + title + "\"<<CSV_SPLITTER_SYMBOL\n\t\t"
-
-    # title = last_key[1].title().replace("_", "").replace("-", "")
-    # source += '<<"%s\\n";' % title
-
-    # source += "\n}\n"
-    # keys.append(last_key)
-       
     return source
 
-def _csv_writer_content(keys, struct_id):
-    source = "template<>\nvoid Internal_CSVWriteContent<%s>( const %s & data, std::ofstream &ofs)" % (
+
+def _csv_writer_content(keys, struct_id, get_property=None):
+    source = "template<>\nvoid Internal_CSVWriteContent<%s>( const %s & data, std::ostream &ofs)" % (
         struct_id, struct_id)
     source += "\n{\n\tofs"
-    last_key = keys.pop()
-    for key in keys:
-        source += '<<data.%s<<CSV_SPLITTER_SYMBOL\n\t\t' % key[1]
-        # source += "<<data." + key[1] + "<<CSV_SPLITTER_SYMBOL\n\t\t"
-    source += '<<data.%s<<\"\\n\";' % last_key[1]
-    # source += "<<data." + last_key[1] + "<<\"\\n\";"
-    keys.append(last_key)
+    num = len(keys)
+    for j in range(num):
+        key = keys[j]
+        is_array = False
+        if get_property and callable(get_property):
+            if key[2] != 'char' and 1 == get_property(key[1], 'array'):
+                is_array = True
+
+        sep = 'CSV_SPLITTER_SYMBOL\n\t\t' if j != num - 1 else "'\\n';"
+        if is_array:
+            array_size = int(get_property(key[1], 'array_size'))
+            assert array_size > 0
+            for i in range(array_size):
+                if j == num - 1 and i == array_size - 1:
+                    sep = "'\\n';"
+                source += "<<data.%s[%d]<<%s" % (key[1], i, sep)
+        else:
+            source += "<<data.%s<<%s" % (key[1], sep)
     source += "\n}\n"
 
     csv_writer_cpp = """
 template<>
-void CSVWriter<%s>(const std::vector<%s> & vec_data, std::ofstream & ofs){
+void CSVWriter<%s>(const std::vector<%s> & vec_data, std::ostream & ofs){
     for(auto it = vec_data.begin(); it != vec_data.end(); ++it){
         Internal_CSVWriteContent<%s>(*it, ofs);
     }
@@ -75,7 +83,6 @@ bool CSVWriter<%s>(const std::vector<%s> & vec_data, const std::string & csv_fil
 }
 """
     source += csv_writer_cpp % tuple([struct_id] * 7)
-
     return source
 
 
@@ -99,11 +106,11 @@ class CPPCsvWriterGenerator(CPPGeneratorBase):
 template<typename DataStruct>
 std::string CSVWriteRtnHead(){ return ""; }
 template<typename DataStruct>
-void Internal_CSVWriteHead(std::ofstream &ofs){}
+void Internal_CSVWriteHead(std::ostream &ofs){}
 template<typename DataStruct>
-void Internal_CSVWriteContent(const DataStruct &, std::ofstream &){}
+void Internal_CSVWriteContent(const DataStruct &, std::ostream &){}
 template<typename DataStruct>
-void CSVWriter(const std::vector<DataStruct> &, std::ofstream &){}
+void CSVWriter(const std::vector<DataStruct> &, std::ostream &){}
 template<typename DataStruct>
 bool CSVWriter(const std::vector<DataStruct> &, const std::string &){return false;}
 
@@ -113,11 +120,11 @@ bool CSVWriter(const std::vector<DataStruct> &, const std::string &){return fals
         h_tpl = """template<>
 std::string CSVWriteRtnHead<%s>();
 template<>
-void Internal_CSVWriteHead<%s>(std::ofstream &ofs);
+void Internal_CSVWriteHead<%s>(std::ostream &ofs);
 template<>
-void Internal_CSVWriteContent<%s>(const %s &, std::ofstream &);
+void Internal_CSVWriteContent<%s>(const %s &, std::ostream &);
 template<>
-void CSVWriter<%s>(const std::vector<%s> &, std::ofstream &);
+void CSVWriter<%s>(const std::vector<%s> &, std::ostream &);
 template<>
 bool CSVWriter<%s>(const std::vector<%s> &, const std::string &);
 """
@@ -135,8 +142,9 @@ bool CSVWriter<%s>(const std::vector<%s> &, const std::string &);
         for struct_id in self.datastructs:
             if struct_id in self.datastruct_property_dict:
                 cpp += "/*\n * @brief csv_writer_for datastruct:%s\n */\n" % struct_id
-                cpp += _csv_writer_header(self.datastruct_property_dict[struct_id], struct_id)
-                cpp += _csv_writer_content(self.datastruct_property_dict[struct_id], struct_id)
+                fun = functools.partial(self.get_property, struct_id)
+                cpp += _csv_writer_header(self.datastruct_property_dict[struct_id], struct_id, fun)
+                cpp += _csv_writer_content(self.datastruct_property_dict[struct_id], struct_id, fun)
                 cpp += "\n\n"
 
                 hfile += "/*\n * @brief csv_writer_for datastruct:%s\n */\n" % struct_id

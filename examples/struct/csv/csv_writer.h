@@ -1,5 +1,5 @@
-#ifndef CSVWriter_AUTO_GENERATED_AT_20181111T113134_H
-#define CSVWriter_AUTO_GENERATED_AT_20181111T113134_H
+#ifndef CSVWriter_AUTO_GENERATED_AT_20181119T122954_H
+#define CSVWriter_AUTO_GENERATED_AT_20181119T122954_H
 #include <vector>
 #include <string>
 #include <fstream>
@@ -9,11 +9,11 @@
 template<typename DataStruct>
 std::string CSVWriteRtnHead(){ return ""; }
 template<typename DataStruct>
-void Internal_CSVWriteHead(std::ofstream &ofs){}
+void Internal_CSVWriteHead(std::ostream &ofs){}
 template<typename DataStruct>
-void Internal_CSVWriteContent(const DataStruct &, std::ofstream &){}
+void Internal_CSVWriteContent(const DataStruct &, std::ostream &){}
 template<typename DataStruct>
-void CSVWriter(const std::vector<DataStruct> &, std::ofstream &){}
+void CSVWriter(const std::vector<DataStruct> &, std::ostream &){}
 template<typename DataStruct>
 bool CSVWriter(const std::vector<DataStruct> &, const std::string &){return false;}
 
@@ -24,13 +24,28 @@ bool CSVWriter(const std::vector<DataStruct> &, const std::string &){return fals
 template<>
 std::string CSVWriteRtnHead<StockInfo>();
 template<>
-void Internal_CSVWriteHead<StockInfo>(std::ofstream &ofs);
+void Internal_CSVWriteHead<StockInfo>(std::ostream &ofs);
 template<>
-void Internal_CSVWriteContent<StockInfo>(const StockInfo &, std::ofstream &);
+void Internal_CSVWriteContent<StockInfo>(const StockInfo &, std::ostream &);
 template<>
-void CSVWriter<StockInfo>(const std::vector<StockInfo> &, std::ofstream &);
+void CSVWriter<StockInfo>(const std::vector<StockInfo> &, std::ostream &);
 template<>
 bool CSVWriter<StockInfo>(const std::vector<StockInfo> &, const std::string &);
+
+
+/*
+ * @brief csv_writer_for datastruct:QwAdapterMarketDataLV5Field
+ */
+template<>
+std::string CSVWriteRtnHead<QwAdapterMarketDataLV5Field>();
+template<>
+void Internal_CSVWriteHead<QwAdapterMarketDataLV5Field>(std::ostream &ofs);
+template<>
+void Internal_CSVWriteContent<QwAdapterMarketDataLV5Field>(const QwAdapterMarketDataLV5Field &, std::ostream &);
+template<>
+void CSVWriter<QwAdapterMarketDataLV5Field>(const std::vector<QwAdapterMarketDataLV5Field> &, std::ostream &);
+template<>
+bool CSVWriter<QwAdapterMarketDataLV5Field>(const std::vector<QwAdapterMarketDataLV5Field> &, const std::string &);
 
 
 #endif

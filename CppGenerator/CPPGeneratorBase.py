@@ -8,8 +8,10 @@ import CppHeaderParser
 def ensure_exists_dir(my_folder):
     return os.path.exists(my_folder) or os.path.isdir(my_folder) or os.makedirs(my_folder)
 
+
 def unsupported_key(key, name, raw_type, struct_id):
     print(">>> In %s, unsupported key: %s with type: %s for datastruct: %s" % (name, key, raw_type, struct_id))
+
 
 def format_key(key, max_length=20):
     key = key.replace("-", "_")
@@ -44,6 +46,7 @@ def format_key(key, max_length=20):
         totalLength -= 1
     return header + ("".join(names))
 
+
 def comment_remover(text):
     def replacer(match):
         s = match.group(0)
@@ -57,6 +60,7 @@ def comment_remover(text):
         re.DOTALL | re.MULTILINE
     )
     return re.sub(pattern, replacer, text)
+
 
 def recap_typedefs(include_cpp_header):
     typedefs = include_cpp_header.typedefs
@@ -90,7 +94,7 @@ def recap_typedefs(include_cpp_header):
                             sub_property['fundamental'] = True
                             sub_property['unresolved'] = False
                         else:
-                            print('recap Unknown type:%s' % raw_type)
+                            print('>>> [recap_typedef] Unknown type:%s' % raw_type)
                             exit(-1)
             else:
                 raw_type = property['raw_type']
@@ -106,7 +110,7 @@ def recap_typedefs(include_cpp_header):
                     elif raw_type in ['unsigned char']:
                         pass
                     else:
-                        print('Unknown type:', raw_type)
+                        print('>>> [recap_typedef] Unknown type:', raw_type)
                         exit(-1)
 
 
@@ -168,6 +172,7 @@ def search_key_id(include_file_name, include_cpp_header, search_reset_keyid=Fals
                     break
     return key_id_map
 
+
 class CPPGeneratorBase:
     def __init__(self, src_folder, dest_folder, cpp_header_file, search_keyid=True, search_reset_keyid=False):
         self.cpp_header = None
@@ -184,7 +189,7 @@ class CPPGeneratorBase:
             self.cpp_header = CppHeaderParser.CppHeader(file_name)
             self._parse_enum(self.cpp_header.enums)
             # print(self.cpp_header.enums)
-            # print(self.cpp_header.C_FUNDAMENTAL)
+            print(self.cpp_header.C_FUNDAMENTAL)
             if self.cpp_header.typedefs:
                 recap_typedefs(self.cpp_header)
 
@@ -206,7 +211,8 @@ class CPPGeneratorBase:
                             recap_typedefs(include_cpp_header)
 
                         if search_keyid:
-                            self.key_id_map.update(search_key_id(include_file_name, include_cpp_header, search_reset_keyid))
+                            self.key_id_map.update(search_key_id(include_file_name, include_cpp_header,
+                                                                 search_reset_keyid))
                         self.cpp_header.classes.update(include_cpp_header.classes)
                     else:
                         print('[Warning] Failed to find include_file: %s' % include_file_name)
@@ -267,6 +273,7 @@ class CPPGeneratorBase:
             if raw_type.split(' ')[-1] not in self.cpp_header.C_FUNDAMENTAL:
                 print('Unexpected raw_type: %s, all raw_type must be C_FUNDAMENTAL: %s' % (raw_type, ','.join(self.cpp_header.C_FUNDAMENTAL)))
                 exit(-1)
+
     # # initialize datastruct_dict with key=struct_id values=all member variable and related information in that sturct
     # # values = list of tuple with (fmt_name, original_member_variable_name, raw_type, extr_info_for_enum(name))
     def init(self):
@@ -277,44 +284,43 @@ class CPPGeneratorBase:
             # methods = self.cpp_header.classes[struct_id]['methods']['public']
             properties = self.cpp_header.classes[struct_id]['properties']['public']
             # print(properties)
-            for property in properties:
-                #print property
-                if property['raw_type'].startswith("::"):
-                    sub_properties = property['class']['properties']['public']
-                    for sub_property in sub_properties:
-                        tmpName = property['name']
+            for property0 in properties:
+                #print property0
+                if property0['raw_type'].startswith("::"):
+                    sub_properties = property0['class']['properties']['public']
+                    for sub_property0 in sub_properties:
+                        tmpName = property0['name']
                         tmpName += "."
-                        tmpName += sub_property['name']
+                        tmpName += sub_property0['name']
                         fmt_name = format_key(tmpName, max_length)
-                        raw_type = sub_property['raw_type']
+                        raw_type = sub_property0['raw_type']
                         self._check_raw_type(raw_type)
-                        if 0 == sub_property['array'] and 'char' == raw_type:
+                        if 0 == sub_property0['array'] and 'char' == raw_type:
                             raw_type = 'unsigned char'
 
                         tmp_keys.append(fmt_name)
-                        if sub_property['raw_type'] == sub_property['type']:
+                        if sub_property0['raw_type'] == sub_property0['type']:
                             keys.append((fmt_name, tmpName, raw_type))
-
                         else:
-                            if sub_property['type'] in self.enums_:
-                                keys.append((fmt_name, tmpName, 'enum', sub_property['type']))
+                            if sub_property0['type'] in self.enums_:
+                                keys.append((fmt_name, tmpName, 'enum', sub_property0['type']))
                             else:
-                                print('Unknown property:', sub_property['type'], raw_type, sub_property)
+                                print('Unknown property:', sub_property0['type'], raw_type, sub_property0)
                                 exit(-1)
                 else:
-                    fmt_name = format_key(property['name'], max_length)
+                    fmt_name = format_key(property0['name'], max_length)
                     tmp_keys.append(fmt_name)
-                    raw_type = property['raw_type']
+                    raw_type = property0['raw_type']
                     self._check_raw_type(raw_type)
-                    if 0 == property['array'] and 'char' == raw_type:
+                    if 0 == property0['array'] and 'char' == raw_type:
                         raw_type = 'unsigned char'
-                    if property['raw_type'] == property['type']:
-                        keys.append((fmt_name, property['name'], raw_type))
+                    if property0['raw_type'] == property0['type']:
+                        keys.append((fmt_name, property0['name'], raw_type))
                     else:
-                        if property['type'] in self.enums_:
-                            keys.append((fmt_name, property['name'], 'enum', property['type']))
+                        if property0['type'] in self.enums_:
+                            keys.append((fmt_name, property0['name'], 'enum', property0['type']))
                         else:
-                            print('Unknown property:', property['type'], raw_type, property)
+                            print('Unknown property:', property0['type'], raw_type, property0)
                             exit(-1)
 
             if len(set(tmp_keys)) != len(tmp_keys):
@@ -324,32 +330,30 @@ class CPPGeneratorBase:
 
     def _get_property(self, struct_id, member_var):
         properties = self.cpp_header.classes[struct_id]['properties']['public']
-        for property in properties:
-            if property['raw_type'].startswith("::"):
-                if not member_var.startswith(property['name']):
+        for property0 in properties:
+            if property0['raw_type'].startswith("::"):
+                if not member_var.startswith(property0['name']):
                     continue
-                sub_properties = property['class']['properties']['public']
-                for sub_property in sub_properties:
-                    tmpName = property['name']
+                sub_properties = property0['class']['properties']['public']
+                for sub_property0 in sub_properties:
+                    tmpName = property0['name']
                     tmpName += "."
-                    tmpName += sub_property['name']
+                    tmpName += sub_property0['name']
                     if tmpName == member_var:
-                        return sub_property
+                        return sub_property0
             else:
-                if property['name'] == member_var:
-                    return property
+                if property0['name'] == member_var:
+                    return property0
         return None
 
-
-    def get_property(self, struct_id, member_var, property=None):
-        prop = self._get_property(struct_id, member_var)
-        if property and len(property) >= 1:
-            if prop and property in prop:
-                return prop[property]
+    def get_property(self, struct_id, member_var, prop=None):
+        prop0 = self._get_property(struct_id, member_var)
+        if prop and len(prop) >= 1:
+            if prop0 and prop in prop0:
+                return prop0[prop]
             else:
                 return None
-        return prop
-        
+        return prop0
 
     def checknfilter_keyntype(self, key, name, struct_id, filter_types, filter_keys, filter_key_id=True):
         if not isinstance(filter_types, list):

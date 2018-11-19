@@ -1172,6 +1172,7 @@ def standardize_fundamental( s ):
 class Resolver(object):
     C_FUNDAMENTAL = 'size_t unsigned signed bool char wchar short int float double long void'.split()
     C_FUNDAMENTAL += 'struct union enum'.split()
+    C_FUNDAMENTAL += ['long long', 'long double', 'unsigned char', 'unsigned int', 'unsigned short']
 
 
     SubTypedefs = {}        # TODO deprecate?
