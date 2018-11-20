@@ -1,5 +1,8 @@
 //Configuration:StockInfo,QwAdapterMarketDataLV5Field
 
+
+#ifndef PY_UTILITIES_STRUCT_H
+#define PY_UTILITIES_STRUCT_H
 typedef char QwInstrumentIdType[31];
 
 struct StockInfo{
@@ -52,3 +55,4 @@ struct QwAdapterMarketDataLV5Field{
 
 };
 
+#endif

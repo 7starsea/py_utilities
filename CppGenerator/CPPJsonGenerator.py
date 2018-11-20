@@ -7,6 +7,69 @@ import subprocess
 from CPPGeneratorBase import CPPGeneratorBase, ensure_exists_dir, unsupported_key
 import datetime
 
+internal_json_writer_map = dict({
+    "int": "Int",
+    "short": "Int",
+    "enum": "Int",
+    "unsigned int": "Uint",
+    "unsigned short": "Uint",
+    "long": "Int64",
+    "unsigned long": "Uint64",
+    "long long": "Int64",
+    "double": "Double",
+    "long double": "Double",
+    "float": "Double",
+    "bool": "Bool",
+    "char": "String",
+    "str": "String",
+    "unsigned char": "String",
+})
+
+internal_json_reader_map = dict({
+    "int": ("GetInt", "IsInt"),
+    "short": ("GetInt", "IsInt"),
+    "enum": ("GetInt", "IsInt"),
+    "unsigned int": ("GetUint", "IsUint"),
+    "unsigned short": ("GetUint", "IsUint"),
+    "long": ("GetInt64", "IsInt64"),
+    "unsigned long": ("GetUint64", "IsUint64"),
+    "long long": ("GetInt64", "IsInt64"),
+    "double": ("GetDouble", "IsNumber"),
+    "long double": ("GetDouble", "IsNumber"),
+    "float": ("GetFloat", "IsNumber"),
+    "bool": ("GetBool", "IsBool"),
+    "char": ("GetString", "IsString"),
+    "str": ("GetString", "IsString"),
+    "unsigned char": ("GetString", "IsString"),
+})
+
+
+def internal_json_reader(cpp_key, py_key, raw_type):
+    cpp = ''
+    if raw_type in ['char', 'unsigned char', 'str']:
+        if raw_type == 'unsigned char':
+            cpp = 'data.%s = obj["%s"].GetString()[0];' % (cpp_key, py_key)
+        else:
+            cpp = 'strncpy(data.%s, obj["%s"].GetString(), sizeof(data.%s)-1);' % (cpp_key, py_key, cpp_key)
+
+            check_str_size_fmt = """
+    if(obj["%s"].GetStringLength() <= sizeof(data.%s)-1){
+        %s
+    }else{
+        flag = false;
+        std::cerr<<">>> String is too bigger for char %s[] with py_key %s."<<std::endl;
+    }
+"""
+            cpp = check_str_size_fmt % (py_key, cpp_key, cpp, cpp_key, py_key)
+
+    elif raw_type in internal_json_reader_map:
+        methods = internal_json_reader_map[raw_type]
+        cpp = 'data.%s = (%s)(obj["%s"].%s());' % (cpp_key, raw_type, py_key, methods[0])
+    else:
+        print('Unknow json reader type:', raw_type)
+        exit(-1)
+    return cpp
+
 
 class CPPJsonGenerator(CPPGeneratorBase):
     def __init__(self, src_folder, dest_folder, datastructs, file_name, check_key_when_read):
@@ -20,7 +83,7 @@ class CPPJsonGenerator(CPPGeneratorBase):
         json_hpp = 'read_parameters_json_base.hpp'
         dest = os.path.join(dest_folder, json_hpp)
         os.path.isfile(dest) or copyfile(os.path.join(python_dir, json_hpp), dest)
-        
+
         json_hpp = 'read_parameters_json_base.cpp'
         dest = os.path.join(dest_folder, json_hpp)
         os.path.isfile(dest) or copyfile(os.path.join(python_dir, json_hpp), dest)
@@ -33,124 +96,82 @@ class CPPJsonGenerator(CPPGeneratorBase):
 
     def _JsonParameterReader(self, keys, struct_id):
         cpp = """template<>
-bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s & pConfig){
+bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s & data){
     bool flag = true;
 """
         cpp %= (struct_id, struct_id)
 
-        double_fmt = """
-    pConfig.%s = (%s)std::numeric_limits<%s>::max();
+        tpl_fmt = """
+    [init_impl]
     if(obj.HasMember( "%s" )){
-        if(obj["%s"].IsNumber()){
-            pConfig.%s = (%s)( obj["%s"].GetDouble() );
+        if(obj["%s"].%s()){
+            [core_impl]
         }else{
             %s
         }
-    }else{
-        %s
-    }
-"""
-        enum_fmt = """
-    pConfig.%s = (%s)(0);
-    if(obj.HasMember( "%s" )){
-        if(obj["%s"].IsInt()){
-            pConfig.%s = (%s)( obj["%s"].GetInt() );
-        }else{
-            %s
-        }
-    }else{
-        %s
-    }
-"""
-        int_fmt = """
-    pConfig.%s = (%s)std::numeric_limits<%s>::max();
-    if(obj.HasMember( "%s" )){
-        if(obj["%s"].IsInt()){
-            pConfig.%s = (%s)( obj["%s"].GetInt() );
-        }else{
-            %s
-        }
-    }else{
-        %s
-    }
-"""
-        bool_fmt = """
-    pConfig.%s = false;
-    if(obj.HasMember( "%s" )){
-        if(obj["%s"].IsBool()){
-            pConfig.%s = obj["%s"].GetBool();
-        }else{
-            %s
-        }
-    }else{
-        %s
-    }
-"""
-        unsigned_char_fmt = """
-    pConfig.%s = 0;
-    if(obj.HasMember( "%s" )){
-        if(obj["%s"].IsString()){
-            pConfig.%s = obj["%s"].GetString()[0];
-        }else{
-            %s
-        }
-    }else{
-        %s
-    }
-"""
-        str_fmt = """
-    if(obj.HasMember( "%s" )){
-        if(obj["%s"].IsString()){
-            strncpy(pConfig.%s, obj["%s"].GetString(), sizeof(pConfig.%s)-1);
-        }else{
-            %s
-        }
-    }else{
-        %s
-    }
-"""
-        keystr_fmt = """
-    strncpy(pConfig.%s, obj["%s"].GetString(), sizeof(pConfig.%s)-1);
+    }%s
 """
 
         for key in keys:
-            if key[2] != 'char' and 1 == self.get_property(struct_id, key[1], 'array'):
-                print('>>> We current does not support %s array %s[].' % (key[2], key[2]))
-                continue
-                # exit(-1)
-
-            # DisplayProperty : DataStructProperty
             tmpKey = key[1].replace(".", "_")
 
+            raw_type = key[2]
+            if raw_type not in internal_json_reader_map:
+                unsupported_key(key[1], '_JsonParameterReader', key[2], struct_id)
+                exit(-1)
+
+            # DisplayProperty : DataStructProperty
             has_valid_type = 'flag = false;\n'
             has_valid_type += '\t\t\tstd::cerr<<">>> Failed to resolve key: %s with type: %s in DataStruct: %s."<<std::endl;'
             has_valid_type %= (tmpKey, key[2], struct_id)
 
             if self.check_key_when_read:
-                has_member = 'std::cerr<<">>> Failed to find key: %s in DataStruct: %s."<<std::endl;\n\t\tflag = false;'
+                has_member = 'else{\n\t\tstd::cerr<<">>> Failed to find key: %s in DataStruct: %s."<<std::endl;\n\t\tflag = false;\n\t}'
                 has_member %= (tmpKey, struct_id)
             else:
                 has_member = ''
-            # prop = self.get_property(struct_id, key[1])
-            # print(prop)
 
-            if key[2] in ['int', 'short', 'unsigned short', 'unsigned int', 'long long']:
-                cpp += (int_fmt % (key[1], key[2], key[2], tmpKey, tmpKey, key[1], key[2], tmpKey, has_valid_type, has_member))
-            elif key[2] in ['enum']:
-                cpp += (enum_fmt % (key[1], key[3], tmpKey, tmpKey, key[1], key[3], tmpKey, has_valid_type, has_member))
-            elif key[2] in ['double', 'float', 'long double']:
-                cpp += (double_fmt % (key[1], key[2], key[2], tmpKey, tmpKey, key[1], key[2], tmpKey, has_valid_type, has_member))
-            elif key[2] == "bool":
-                cpp += (bool_fmt % (key[1], tmpKey, tmpKey, key[1], tmpKey, has_valid_type, has_member))
-            elif key[2] == "unsigned char":
-                cpp += unsigned_char_fmt % (key[1], tmpKey, tmpKey, key[1], tmpKey, has_valid_type, has_member)
-            elif key[2] in ["char", "str"]:
-                if key[1] == self.key_id_map[struct_id]:
-                    cpp += keystr_fmt % (key[1], tmpKey, key[1])
-                else:
-                    cpp += str_fmt % (tmpKey, tmpKey, key[1], tmpKey, key[1], has_valid_type, has_member)
+            methods = internal_json_reader_map[raw_type]
+
+
+            # # read data
+            if key[2] not in ['char', 'str'] and 1 == self.get_property(struct_id, key[1], 'array'):
+                array_size = int(self.get_property(struct_id, key[1], 'array_size'))
+                assert array_size > 0
+                cpp_tpl_code = tpl_fmt % (tmpKey, tmpKey, "IsArray", has_valid_type, has_member)
+
+                cpp_arr_tpl = """
+            const rapidjson::Value & arr = obj["%s"];
+            if(%d != (int) arr.Size()){
+                std::cerr<<">>> array_size of %s is invalid in DataStruct %s"<<std::endl;
+                flag = false;
+            }else{
+                for (int i = 0; i < (int)arr.Size(); ++i){
+                    data.%s[i] = (%s)(arr[i].%s());
+                }
+            } 
+"""
+
+                cpp_arr_tpl %= (tmpKey, array_size, key[1], struct_id, key[1], raw_type, methods[0])
+                cpp += cpp_tpl_code.replace('[core_impl]', cpp_arr_tpl).replace('[init_impl]', '')
+
             else:
-                unsupported_key(key[1], '_JsonParameterReader', key[2], struct_id)
+                cpp_tpl_code = tpl_fmt % (tmpKey, tmpKey, methods[1], has_valid_type, has_member)
+                cpp_tpl_init = ''
+                cpp_core_impl = internal_json_reader(key[1], tmpKey, raw_type)
+
+                if key[2] in ['int', 'short', 'unsigned short', 'unsigned int', 'long long',
+                              'double', 'float', 'long double']:
+                    cpp_tpl_init = 'data.%s = (%s)std::numeric_limits<%s>::max();' % (key[1], key[2], key[2])
+                elif key[2] in ['enum']:
+                    cpp_tpl_init = 'data.%s = (%s)(0);' % (key[1], key[3])
+                elif key[2] in ["bool", "unsigned char"]:
+                    cpp_tpl_init = 'data.%s = (%s)(0);' % (key[1], key[2])
+
+                if raw_type in ['char', 'str'] and key[1] == self.key_id_map[struct_id]:
+                    cpp += cpp_core_impl
+                else:
+                    cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', cpp_tpl_init)
 
         cpp += "\treturn flag;\n}\n\n"
         return cpp
@@ -170,7 +191,7 @@ bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s 
 
 """
         h_tpl = """template<>
-bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s & pConfig);\n
+bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s & data);\n
 """
 
         if not isinstance(include_header, str):
@@ -200,48 +221,36 @@ void SaveJsonParametersHelper<%s>(rapidjson::PrettyWriter<rapidjson::FileWriteSt
     writer.StartObject();
 """
         cpp %= (struct_id, struct_id, self.key_id_map[struct_id])
-        double_fmt = """
-    writer.String("%s");
-    writer.Double((double)data.%s);
-"""
-        int_fmt = """
-    writer.String("%s");
-    writer.Int((int)data.%s);
-"""
-        bool_fmt = """
-    writer.String("%s");
-    writer.Bool(data.%s);
-"""
+
         unsigned_char_fmt = """
     unsigned_char_helper[0] = (char)data.%s;
-    writer.String("%s");
     writer.String(unsigned_char_helper);
-"""
-        str_fmt = """
-    writer.String("%s");
-    writer.String(data.%s);
 """
 
         for key in keys:
-            if key[2] != 'char' and 1 == self.get_property(struct_id, key[1], 'array'):
-                print('>>> We current does not support %s array %s[].' % (key[2], key[2]))
-                continue
-                # exit(-1)
-
-            # DisplayProperty : DataStructProperty
             tmpKey = key[1].replace(".", "_")
-            if key[2] in ['int', 'short', 'unsigned short', 'unsigned int', 'enum', 'long long']:
-                cpp += (int_fmt % (tmpKey, key[1]))
-            elif key[2] in ['double', 'float', 'long double']:
-                cpp += (double_fmt % (tmpKey, key[1]))
-            elif key[2] == "bool":
-                cpp += (bool_fmt % (tmpKey, key[1]))
-            elif key[2] == "unsigned char":
-                cpp += unsigned_char_fmt % (key[1], tmpKey)
-            elif key[2] in ["char", "str"]:
-                cpp += str_fmt % (tmpKey, key[1])
-            else:
+            cpp += '\twriter.String("%s");\n' % tmpKey
+
+            raw_type = key[2]
+            if raw_type not in internal_json_writer_map:
                 unsupported_key(key[1], '_JsonParameterWriter', key[2], struct_id)
+                exit(-1)
+
+            method = internal_json_writer_map[raw_type]
+            # # array
+            if key[2] != 'char' and 1 == self.get_property(struct_id, key[1], 'array'):
+                cpp += "\twriter.StartArray();\n"
+                array_size = int(self.get_property(struct_id, key[1], 'array_size'))
+                assert array_size > 0
+                for i in range(array_size):
+                    cpp += "\t\twriter.%s(data.%s[%d]);\n" % (method, key[1], i)
+                cpp += "\twriter.EndArray();\n"
+            else:
+                # DisplayProperty : DataStructProperty
+                if key[2] == "unsigned char":
+                    cpp += unsigned_char_fmt % (key[1], tmpKey)
+                else:
+                    cpp += "\twriter.%s(data.%s);\n" % (method, key[1])
 
         cpp += "\twriter.EndObject();\n}\n\n"
         return cpp
@@ -281,20 +290,21 @@ void SaveJsonParametersHelper<%s>(rapidjson::PrettyWriter<rapidjson::FileWriteSt
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description='Json Reader/Writer cpp Generator')
     parser.add_argument('-c', '--check', action='store_true',
                         help="check every member variable in DataStruct")
     parser.add_argument('-i', '--include', help="include other header file instead of the parsing header file")
     parser.add_argument('-l', '--lib', default='rwjson', help="library name")
     parser.add_argument("-s", "--struct", default='',
-                      help="Specify the datastruct names(separated by comma(,)) for createing csv reader/writer")
+                        help="Specify the datastruct names(separated by comma(,)) for createing csv reader/writer")
     parser.add_argument('header', help="The cpp header file that need to parse;")
 
     opt = parser.parse_args()
     print(opt)
     destination = opt.header
     if not os.path.isfile(destination):
-        print ("The file: %s is not a valid file!" % destination)
+        print("The file: %s is not a valid file!" % destination)
         exit(-1)
 
     project_struct_file = os.path.basename(destination)
@@ -322,14 +332,15 @@ if __name__ == "__main__":
             t1 = t1.strip()
 
             if not t1.startswith("//Configuration:"):
-                print ("You need to specify a configuration in the first line starting with //Configuration: for file:", opt.header)
+                print("You need to specify a configuration in the first line starting with //Configuration: for file:",
+                      opt.header)
                 exit(-1)
 
             t1 = t1.replace("//Configuration:", "")
             datastruct_dict = t1.split(",")
-       
+
     if len(datastruct_dict) < 1:
-        print ("There is no datastruct, please configure!")
+        print("There is no datastruct, please configure!")
         exit(1)
 
     cpp_generator = CPPJsonGenerator(raw_destination, src_destination, datastruct_dict, project_struct_file, opt.check)
