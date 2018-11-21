@@ -1,5 +1,5 @@
-#ifndef CSVWriter_AUTO_GENERATED_AT_20181119T122954_H
-#define CSVWriter_AUTO_GENERATED_AT_20181119T122954_H
+#ifndef CSVWriter_AUTO_GENERATED_AT_20181120T173344_H
+#define CSVWriter_AUTO_GENERATED_AT_20181120T173344_H
 #include <vector>
 #include <string>
 #include <fstream>

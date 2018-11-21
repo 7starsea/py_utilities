@@ -56,8 +56,8 @@ def internal_json_reader(cpp_key, py_key, raw_type):
     if(obj["%s"].GetStringLength() <= sizeof(data.%s)-1){
         %s
     }else{
-        flag = false;
         std::cerr<<">>> String is too bigger for char %s[] with py_key %s."<<std::endl;
+        flag = false;
     }
 """
             cpp = check_str_size_fmt % (py_key, cpp_key, cpp, cpp_key, py_key)
@@ -121,8 +121,8 @@ bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s 
                 exit(-1)
 
             # DisplayProperty : DataStructProperty
-            has_valid_type = 'flag = false;\n'
-            has_valid_type += '\t\t\tstd::cerr<<">>> Failed to resolve key: %s with type: %s in DataStruct: %s."<<std::endl;'
+            has_valid_type = 'std::cerr<<">>> Failed to resolve key: %s with type: %s in DataStruct: %s."<<std::endl;\n'
+            has_valid_type += '\t\t\tflag = false;'
             has_valid_type %= (tmpKey, key[2], struct_id)
 
             if self.check_key_when_read:
@@ -146,13 +146,13 @@ bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s 
                 std::cerr<<">>> array_size of %s is invalid in DataStruct %s"<<std::endl;
                 flag = false;
             }else{
-                for (int i = 0; i < (int)arr.Size(); ++i){
+                for (int i = 0; i < %d; ++i){
                     data.%s[i] = (%s)(arr[i].%s());
                 }
             } 
 """
 
-                cpp_arr_tpl %= (tmpKey, array_size, key[1], struct_id, key[1], raw_type, methods[0])
+                cpp_arr_tpl %= (tmpKey, array_size, key[1], struct_id, array_size, key[1], raw_type, methods[0])
                 cpp += cpp_tpl_code.replace('[core_impl]', cpp_arr_tpl).replace('[init_impl]', '')
 
             else:
@@ -174,7 +174,7 @@ bool ReadJsonParametersHelper<%s>(const rapidjson::Value::ConstObject & obj, %s 
                     cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', cpp_tpl_init)
 
         cpp += "\treturn flag;\n}\n\n"
-        return cpp
+        return cpp.replace('\t', '    ')
 
     def JsonParameterReader(self, json_reader_file_prefix, include_header=None):
         cpp = """#include "%s.h"
@@ -253,7 +253,7 @@ void SaveJsonParametersHelper<%s>(rapidjson::PrettyWriter<rapidjson::FileWriteSt
                     cpp += "\twriter.%s(data.%s);\n" % (method, key[1])
 
         cpp += "\twriter.EndObject();\n}\n\n"
-        return cpp
+        return cpp.replace('\t', '    ')
 
     def JsonParameterWriter(self, json_writer_file_prefix, include_header=None):
         cpp = """#include "%s.h"
