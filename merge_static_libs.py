@@ -11,22 +11,22 @@ def ensure_dir_exists(dirname):
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(description='Merge Static libs')
+    parser = argparse.ArgumentParser(description='Merge Static libs into one bigger static lib')
     parser.add_argument('-v', '--verbose', action='store_true', help='print verbose information.')
-    parser.add_argument("libs", nargs='+', help='target static-lib static-lib ...')
+    parser.add_argument("target_lib", help='target-lib')
+    parser.add_argument("libs", nargs='+', help='static-lib static-lib ...')
     opts = parser.parse_args()
 
     assert isinstance(opts.libs, list)
-    if len(opts.libs) < 2:
-        print('We need a target-name and at least one static lib')
+    if len(opts.libs) < 1:
+        print('We need at least one static lib.')
         exit(-1)
 
     cmake_ar = 'ar'
     if opts.verbose:
-        print(opts.libs)
+        print('target lib: %s static libs: %s' % (opts.target_lib,','.join(opts.libs)))
 
-    target_lib = os.path.basename(opts.libs[0])
-    opts.libs.pop(0)
+    target_lib = os.path.basename(opts.target_lib)
     working_dir = 'TMP_FOLDER4%s' % target_lib
     ensure_dir_exists(working_dir)
     for libname in opts.libs:
@@ -46,7 +46,6 @@ if __name__ == '__main__':
     current_dir = os.getcwd()
     os.chdir(working_dir)
     object_files = glob.glob('**/*.o', recursive=True)
-    # print(object_files)
     os.chdir(current_dir)
 
     cmd = '%s -r %s %s' % (cmake_ar, target_lib, ' '.join(object_files))
@@ -63,6 +62,6 @@ if __name__ == '__main__':
         if 0 != p1.returncode:
             print(p1.stderr)
 
-    shutil.copy(os.path.join(working_dir, target_lib), opts.libs[0])
+    shutil.copy(os.path.join(working_dir, target_lib), opts.target_lib)
     shutil.rmtree(working_dir)
 
