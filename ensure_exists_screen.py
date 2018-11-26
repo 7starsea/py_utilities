@@ -6,7 +6,8 @@ import sys
 if len(sys.argv) != 2:
     print("We need one screen name argument.")
     exit(-1)
-    
+
+
 def check_screen(screenname):
     if not re.match(r"^[a-zA-z][\w_-]*\w$", screenname):
         print('>>> Invalid screen name:%s' % screenname)
@@ -24,7 +25,8 @@ def check_screen(screenname):
     if len(zz) > 1:
         print("There are more than two screens with same name:%s" % screenname)
     return False
-    
+
+
 if not check_screen(sys.argv[1]):
     subprocess.call("screen -dmS %s" % sys.argv[1], shell=True)
     if not check_screen(sys.argv[1]):
