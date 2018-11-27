@@ -1,0 +1,5 @@
+
+
+void boo();
+
+void bar();
