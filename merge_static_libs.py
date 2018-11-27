@@ -17,7 +17,9 @@ if __name__ == '__main__':
     parser.add_argument("libs", nargs='+', help='static-lib static-lib ...')
     opts = parser.parse_args()
 
-    assert isinstance(opts.libs, list)
+    assert sys.version_info >= (3, 5) and "We need python3.5 or later to support subprocess.run.\nYou are welcome to " \
+                                          "contribute to support other python versions. "
+
     if len(opts.libs) < 1:
         print('We need at least one static lib.')
         exit(-1)

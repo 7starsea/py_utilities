@@ -18,6 +18,11 @@
 # - MERGE_STATIC_LIBS(target [static-lib1 .... static-libN])
 # This macro merges several static libraries into a single one 
 
+set(DIR_OF_MERGE_LIB_CMAKE ${CMAKE_CURRENT_LIST_DIR})  
+function(INIT_MERGE_LIB_DIR)
+    message("DIR_OF_MERGE_LIB_CMAKE is ${DIR_OF_MERGE_LIB_CMAKE}")
+endfunction()
+
 MACRO(MERGE_STATIC_LIBS TARGET_OUTPUT)
     ## To produce a library we need at least one source file.
     ## It is created by ADD_CUSTOM_COMMAND below and will
@@ -35,11 +40,6 @@ MACRO(MERGE_STATIC_LIBS TARGET_OUTPUT)
             ADD_DEPENDENCIES(${TARGET_OUTPUT} ${LIB})
             set(STATIC_LIBS ${STATIC_LIBS} $<TARGET_FILE:${LIB}>)
             message(STATUS "Add STATIC LIB:" ${LIB})
-            
-            IF(MSVC)
-                ADD_CUSTOM_COMMAND(TARGET ${LIB} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${LIB}>  ${TMP_FOLDER}/${LIB}.lib ) 
-            ENDIF()
 
         ELSE()
             message(FATAL_ERROR "${LIB} IS NOT A STATIC LIB.")
@@ -56,10 +56,13 @@ MACRO(MERGE_STATIC_LIBS TARGET_OUTPUT)
     set(TARGET_LOCATION $<TARGET_FILE:${TARGET_OUTPUT}>)
     IF(MSVC)
         FOREACH(LIB ${ARGN})
-            SET(LINKER_EXTRA_FLAGS "${LINKER_EXTRA_FLAGS} ${TMP_FOLDER}/${LIB}.lib")
+            SET(LINKER_EXTRA_FLAGS_DEBUG "${LINKER_EXTRA_FLAGS_DEBUG} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG}/${LIB}d.lib")
+            SET(LINKER_EXTRA_FLAGS_RELEASE "${LINKER_EXTRA_FLAGS_RELEASE} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE}/${LIB}.lib")
         ENDFOREACH()
         # To merge libs, just pass them to lib.exe command line.
-        SET_TARGET_PROPERTIES(${TARGET_OUTPUT} PROPERTIES STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS}")
+        SET_TARGET_PROPERTIES(${TARGET_OUTPUT} PROPERTIES 
+            STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS_DEBUG}"
+            STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS_RELEASE}")
         
     ELSEIF(APPLE)
         # Use OSX's libtool to merge archives (ihandles universal 
@@ -72,9 +75,12 @@ MACRO(MERGE_STATIC_LIBS TARGET_OUTPUT)
         # Generic Unix, Cygwin or MinGW. In post-build step, call
         # script, that extracts objects from archives with "ar x" 
         # and repacks them with "ar r"
+
+        INIT_MERGE_LIB_DIR()
+
         ADD_CUSTOM_COMMAND(TARGET ${TARGET_OUTPUT} POST_BUILD
             COMMAND rm ${TARGET_LOCATION}
-            COMMAND python ${CMAKE_CURRENT_LIST_DIR}/merge_static_libs.py --verbose ${TARGET_LOCATION} ${STATIC_LIBS}
+            COMMAND python ${DIR_OF_MERGE_LIB_CMAKE}/merge_static_libs.py --verbose ${TARGET_LOCATION} ${STATIC_LIBS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             )  
     ENDIF()
