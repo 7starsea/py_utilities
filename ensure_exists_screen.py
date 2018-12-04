@@ -4,7 +4,7 @@ import re
 import sys
 import argparse
 
-parser = argparse.ArgumentParser(description='Update Json File')
+parser = argparse.ArgumentParser(description='check screen exists or not and create it')
 parser.add_argument('-c', '--check', action='store_true', help='check screen exists only.')
 parser.add_argument("screenname", help='screen name')
 opts = parser.parse_args()

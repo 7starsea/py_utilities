@@ -5,6 +5,7 @@ python_utilities (py-utilities)
 We provide some usefull python utilities.
 
 All code are tested under python3.6
+
 Although we try to be python2 and python3 compatible, but some may failed under python2, if you find some error under python2, please let me know.
 
 # How to use (examples)
@@ -16,4 +17,5 @@ Although we try to be python2 and python3 compatible, but some may failed under 
 
 // We internally use [RapidJson](https://github.com/Tencent/rapidjson/) for cpp parsing Json file<br />
 * python CppGenerator/CPPJsonGenerator.py examples/struct.h
-
+// merge several static libs into a big one (cross-platform, tested on Window, Linux(Ubuntu), MacOS)
+* python merge_static_libs.py libboobar_merged.a libboo.a libbar.a
