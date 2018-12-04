@@ -54,32 +54,26 @@ MACRO(MERGE_STATIC_LIBS TARGET_OUTPUT)
         COMMAND ${CMAKE_COMMAND}  -E touch ${SOURCE_FILE} )
     
     set(TARGET_LOCATION $<TARGET_FILE:${TARGET_OUTPUT}>)
+    
+    INIT_MERGE_LIB_DIR()
+    
     IF(MSVC)
-        FOREACH(LIB ${ARGN})
-            SET(LINKER_EXTRA_FLAGS_DEBUG "${LINKER_EXTRA_FLAGS_DEBUG} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG}/${LIB}d.lib")
-            SET(LINKER_EXTRA_FLAGS_RELEASE "${LINKER_EXTRA_FLAGS_RELEASE} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE}/${LIB}.lib")
-        ENDFOREACH()
-        # To merge libs, just pass them to lib.exe command line.
-        SET_TARGET_PROPERTIES(${TARGET_OUTPUT} PROPERTIES 
-            STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS_DEBUG}"
-            STATIC_LIBRARY_FLAGS "${LINKER_EXTRA_FLAGS_RELEASE}")
+        get_filename_component(dir_cmake_linker_path ${CMAKE_LINKER} PATH)
+        set(merge_exe_file "${dir_cmake_linker_path}/lib.exe")
         
-    ELSEIF(APPLE)
-        # Use OSX's libtool to merge archives (ihandles universal 
-        # binaries properly)
-        ADD_CUSTOM_COMMAND(TARGET ${TARGET_OUTPUT} POST_BUILD
-            COMMAND rm ${TARGET_LOCATION}
-            COMMAND /usr/bin/libtool -static -o ${TARGET_LOCATION}  ${STATIC_LIBS} )  
+        IF(NOT EXISTS "${merge_exe_file}")
+            message(WARNING "Failed to find lib.exe for merging static libs: ${merge_exe_file}")
+        ELSE()
+            ADD_CUSTOM_COMMAND(TARGET ${TARGET_OUTPUT} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E remove ${TARGET_LOCATION}
+                COMMAND python ${DIR_OF_MERGE_LIB_CMAKE}/merge_static_libs.py --verbose --executable ${merge_exe_file} ${TARGET_LOCATION} ${STATIC_LIBS}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                ) 
+        ENDIF()
 
     ELSE()
-        # Generic Unix, Cygwin or MinGW. In post-build step, call
-        # script, that extracts objects from archives with "ar x" 
-        # and repacks them with "ar r"
-
-        INIT_MERGE_LIB_DIR()
-
         ADD_CUSTOM_COMMAND(TARGET ${TARGET_OUTPUT} POST_BUILD
-            COMMAND rm ${TARGET_LOCATION}
+            COMMAND ${CMAKE_COMMAND} -E remove ${TARGET_LOCATION}
             COMMAND python ${DIR_OF_MERGE_LIB_CMAKE}/merge_static_libs.py --verbose ${TARGET_LOCATION} ${STATIC_LIBS}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             )  
