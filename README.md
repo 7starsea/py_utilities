@@ -17,5 +17,8 @@ Although we try to be python2 and python3 compatible, but some may failed under 
 
 // We internally use [RapidJson](https://github.com/Tencent/rapidjson/) for cpp parsing Json file<br />
 * python CppGenerator/CPPJsonGenerator.py examples/struct.h
-// merge several static libs into a big one (cross-platform, tested on Window, Linux(Ubuntu), MacOS)
+
+// merge several static libs into a big one (cross-platform, tested on Window, Linux(Ubuntu), MacOS) 
+// see examples/merge-static-libs
 * python merge_static_libs.py libboobar_merged.a libboo.a libbar.a
+
