@@ -8,6 +8,10 @@ All code are tested under python3.6.
 
 Although we try to be python2 and python3 compatible, but some may failed under python2, if you find some error under python2, please let me know.
 
+# What is New
+* add rtn_opt_dates.py for easily generateing a list of dates
+* add linear_regression.py, with extraordinary speed improvement over scikit-learn/linear_model for special use cases. We intentionally implement split-conquer method.
+
 # How to use (examples)
 * python ensure_exists_screen.py test_screen_name
 * python update_json_file.py --update-type update_all examples/test-old.json examples/test.json
