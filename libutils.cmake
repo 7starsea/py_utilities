@@ -49,9 +49,13 @@ MACRO(MERGE_STATIC_LIBS TARGET_OUTPUT)
     ## Make the generated dummy source file depended on all static input
     ## libs. If input lib changes,the source file is touched
     ## which causes the desired effect (relink).
-    ADD_CUSTOM_COMMAND(OUTPUT  ${SOURCE_FILE}
-		COMMAND ${CMAKE_COMMAND}  -E make_directory ${TMP_FOLDER}
-        COMMAND ${CMAKE_COMMAND}  -E touch ${SOURCE_FILE} )
+    IF(NOT EXISTS ${SOURCE_FILE})
+        ADD_CUSTOM_COMMAND(OUTPUT  ${SOURCE_FILE}
+            COMMAND ${CMAKE_COMMAND}  -E make_directory ${TMP_FOLDER}
+            COMMAND ${CMAKE_COMMAND}  -E touch ${SOURCE_FILE} )
+    ELSE()
+        message(STATUS "SOURCE_FILE: ${SOURCE_FILE} ALREADY EXISTS:")
+    ENDIF()
     
     set(TARGET_LOCATION $<TARGET_FILE:${TARGET_OUTPUT}>)
     
