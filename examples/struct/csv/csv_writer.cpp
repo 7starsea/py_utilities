@@ -8,11 +8,11 @@ template<>
 std::string CSVWriteRtnHead<StockInfo>()
 {
 	std::string header;
-	header.append("StockId");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("SettPrice");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("LongVol");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("TodLongVol");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("YdLongVol");	header.push_back('\n');
+	header.append("stock_id");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("sett_price");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("long_vol");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("tod_long_vol");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("yd_long_vol");	header.push_back('\n');
 
 	return header;
 }
@@ -57,36 +57,36 @@ template<>
 std::string CSVWriteRtnHead<QwAdapterMarketDataLV5Field>()
 {
 	std::string header;
-	header.append("InstrumentId");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("UpdateTime");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("StockUpdateTime");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("MarketStatus");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("UpdateMilSec");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("LastPrice");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidPrice1");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidPrice2");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidPrice3");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidPrice4");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidPrice5");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskPrice1");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskPrice2");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskPrice3");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskPrice4");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskPrice5");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidVol1");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidVol2");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidVol3");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidVol4");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("BidVol5");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskVol1");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskVol2");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskVol3");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskVol4");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("AskVol5");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("TradeVolume");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("LastTradeVolume");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("TurnOver");	header.push_back(CSV_SPLITTER_SYMBOL);
-	header.append("OpenInterset");	header.push_back('\n');
+	header.append("instrument_id");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("update_time");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("stock_update_time");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("market_status");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("update_mil_sec");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("last_price");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_price1");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_price2");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_price3");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_price4");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_price5");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_price1");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_price2");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_price3");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_price4");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_price5");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_vol1");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_vol2");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_vol3");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_vol4");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("bid_vol5");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_vol1");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_vol2");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_vol3");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_vol4");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("ask_vol5");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("trade_volume");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("last_trade_volume");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("turn_over");	header.push_back(CSV_SPLITTER_SYMBOL);
+	header.append("open_interset");	header.push_back('\n');
 
 	return header;
 }

@@ -9,12 +9,59 @@ import functools
 from CPPGeneratorBase import CPPGeneratorBase, ensure_exists_dir
 
 
+internal_csv_reader_map = dict({
+    "int": ("get<int>", "is_int"),
+    "short": ("get<int>", "is_int"),
+    "enum": ("get<int>", "is_int"),
+    "unsigned int": ("get<int>", "is_int"),
+    "unsigned short": ("get<int>", "is_int"),
+    "long": ("get<long>", "is_int"),
+    "unsigned long": ("get<unsigned long>", "is_int"),
+    "long long": ("get<long long>", "is_int"),
+    "double": ("get<double>", "is_num"),
+    "long double": ("get<double>", "is_num"),
+    "float": ("get<double>", "is_num"),
+    "bool": ("get<int>", "is_int"),
+    "char": ("get<std::string>", "is_str"),
+    "str": ("get<std::string>", "is_str"),
+    "unsigned char": ("get<std::string>", "is_str"),
+})
+
+
+def internal_csv_reader(cpp_key, py_key, raw_type):
+    cpp = ''
+    if raw_type in ['char', 'unsigned char', 'str']:
+        if raw_type == 'unsigned char':
+            cpp = 'data.%s = row["%s"].get<std::string>()[0];' % (cpp_key, py_key)
+        else:
+            cpp = 'strncpy(data.%s, row["%s"].get<std::string>().c_str(), sizeof(data.%s)-1);' % (cpp_key, py_key, cpp_key)
+
+            check_str_size_fmt = """
+        if(row["%s"].get().size() <= sizeof(data.%s)-1){
+            %s
+        }else{
+            std::cerr<<">>> String is too bigger for char %s[] with py_key %s."<<std::endl;
+            flag = false;
+        }
+"""
+            cpp = check_str_size_fmt % (py_key, cpp_key, cpp, cpp_key, py_key)
+
+    elif raw_type in internal_csv_reader_map:
+        methods = internal_csv_reader_map[raw_type]
+        cpp = 'data.%s = (%s)(row["%s"].%s());' % (cpp_key, raw_type, py_key, methods[0])
+    else:
+        print('Unknow csv reader type:', raw_type)
+        exit(-1)
+    return cpp
+
+
 def _csv_writer_header(keys, struct_id, get_property=None):
     source = "template<>\nstd::string CSVWriteRtnHead<%s>()\n{\n\tstd::string header;\n" % struct_id
     num = len(keys)
     for j in range(num):
         key = keys[j]
-        title = key[1].title().replace("_", "").replace("-", "")
+        title = key[1]
+        # title = key[1].title().replace("_", "").replace("-", "")
 
         is_array = False
         if get_property and callable(get_property):
@@ -93,6 +140,142 @@ class CPPCsvWriterGenerator(CPPGeneratorBase):
         self.datastructs = datastructs
 
         self.check_structs(datastructs)
+
+        # python_dir = (os.path.dirname(os.path.realpath(__file__)))
+        #
+        # csv_hpp = 'read_parameters_csv_base.hpp'
+        # dest = os.path.join(dest_folder, csv_hpp)
+        # os.path.isfile(dest) or copyfile(os.path.join(python_dir, csv_hpp), dest)
+
+    def _csv_reader(self, keys, struct_id):
+        cpp = """template<>
+bool ReadCsvParametersHelper<%s>(const csv::CSVRow & row, %s & data){
+    bool flag = true;
+"""
+        cpp %= (struct_id, struct_id)
+
+        tpl_fmt = """
+    [init_impl]   
+    if(row["%s"].%s()){
+        [core_impl]
+    }else{
+        %s
+    }
+    
+"""
+        for key in keys:
+            tmpKey = key[1].replace(".", "_")
+
+            raw_type = key[2]
+            if raw_type not in internal_csv_reader_map:
+                unsupported_key(key[1], '_CsvReader', key[2], struct_id)
+                exit(-1)
+
+            # DisplayProperty : DataStructProperty
+            has_valid_type = 'std::cerr<<">>> Failed to resolve key: %s with type: %s in DataStruct: %s."<<std::endl;\n'
+            has_valid_type += '\t\t\tflag = false;'
+            has_valid_type %= (tmpKey, key[2], struct_id)
+
+            # if self.check_key_when_read:
+            #     has_member = 'else{\n\t\tstd::cerr<<">>> Failed to find key: %s in DataStruct: %s."<<std::endl;\n\t\tflag = false;\n\t}'
+            #     has_member %= (tmpKey, struct_id)
+            # else:
+            #     has_member = ''
+
+            methods = internal_csv_reader_map[raw_type]
+
+            # # read data
+            if key[2] not in ['char', 'str'] and 1 == self.get_property(struct_id, key[1], 'array'):
+                array_size = int(self.get_property(struct_id, key[1], 'array_size'))
+                assert array_size > 0
+
+                for i in range(array_size):
+                    arrTmpKey = '%s%d' % (tmpKey, i + 1)
+                    cpp_tpl_code = tpl_fmt % (arrTmpKey, methods[1], has_valid_type)
+                    cpp_core_impl = internal_csv_reader('%s[%d]' % (key[1], i), arrTmpKey, raw_type)
+                    cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', '')
+
+            else:
+                cpp_tpl_code = tpl_fmt % (tmpKey, methods[1], has_valid_type)
+                cpp_tpl_init = ''
+                cpp_core_impl = internal_csv_reader(key[1], tmpKey, raw_type)
+
+                if key[2] in ['int', 'short', 'unsigned short', 'unsigned int', 'long long',
+                              'double', 'float', 'long double']:
+                    cpp_tpl_init = 'data.%s = (%s)std::numeric_limits<%s>::max();' % (key[1], key[2], key[2])
+                elif key[2] in ['enum']:
+                    cpp_tpl_init = 'data.%s = (%s)(0);' % (key[1], key[3])
+                elif key[2] in ["bool", "unsigned char"]:
+                    cpp_tpl_init = 'data.%s = (%s)(0);' % (key[1], key[2])
+
+                # if raw_type in ['char', 'str'] and key[1] == self.key_id_map[struct_id]:
+                #     cpp += cpp_core_impl
+                # else:
+                #     cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', cpp_tpl_init)
+                cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', cpp_tpl_init)
+
+        cpp += "\treturn flag;\n}\n\n"
+        return cpp.replace('\t', '    ')
+
+    def csv_reader(self, csvfile_prefix, include_header=None):
+        hfile = """#ifndef CSVReader_AUTO_GENERATED_AT_%s_H
+#define CSVReader_AUTO_GENERATED_AT_%s_H
+#include <vector>
+#include <string>
+#include <fstream>
+#include <cstring>
+#include "csv.hpp"
+#include "%s"
+
+template<typename DataStruct>
+bool ReadCsvParametersHelper(const csv::CSVRow &, DataStruct &){return false;}
+
+template<typename DataStruct>
+bool ReadCsvnParameters2Vector(const char * fileName, std::vector<DataStruct> & vec_data ){
+    bool flag = true;
+    csv::CSVReader reader(fileName, csv::DEFAULT_CSV_STRICT);    
+    csv::CSVRow row;
+    DataStruct data;
+    while (reader.read_row(row)) {
+        
+        std::memset(&data, 0, sizeof(DataStruct));;
+        if( ReadCsvParametersHelper<DataStruct>(row, data) ){
+            vec_data.push_back(data);
+        }else{
+             flag = false;
+        }
+    }
+    return flag;
+};
+
+
+"""
+        cpp = """#include "%s.h"
+#include <iostream>
+#include <limits>
+
+"""
+
+        h_tpl = "template<>\nbool ReadCsvParametersHelper<%s>(const csv::CSVRow & row, %s & data);\n\n"
+
+        if not isinstance(include_header, str):
+            include_header = self.datastruct_file
+        tod = datetime.datetime.today().strftime('%Y%m%dT%H%M%S')
+        hfile %= (tod, tod, include_header)
+        cpp %= csvfile_prefix
+
+        for struct_id in self.datastructs:
+            if struct_id in self.datastruct_property_dict:
+                cpp += self._csv_reader(self.datastruct_property_dict[struct_id], struct_id)
+                hfile += h_tpl % (struct_id, struct_id)
+
+        hfile += "\n#endif"
+
+        csv_reader_file = csvfile_prefix + ".cpp"
+        self.writeToFile(csv_reader_file, cpp)
+        csv_reader_file = csvfile_prefix + ".h"
+        self.writeToFile(csv_reader_file, hfile)
+        pass
 
     def csv_writer(self, csvfile_prefix, include_header=None):
         hfile = """#ifndef CSVWriter_AUTO_GENERATED_AT_%s_H
@@ -212,4 +395,5 @@ if __name__ == "__main__":
     cpp_generator = CPPCsvWriterGenerator(raw_destination, src_destination, datastruct_dict, project_dstruct_file)
 
     cpp_generator.csv_writer("csv_writer", opt.include)
+    cpp_generator.csv_reader("csv_reader", opt.include)
     cpp_generator.create_cmakelists(opt.lib)
