@@ -149,7 +149,7 @@ class CPPCsvWriterGenerator(CPPGeneratorBase):
 
     def _csv_reader(self, keys, struct_id):
         cpp = """template<>
-bool ReadCsvParametersHelper<%s>(const csv::CSVRow & row, %s & data){
+bool CSVReaderHelper<%s>(const csv::CSVRow & row, %s & data){
     bool flag = true;
 """
         cpp %= (struct_id, struct_id)
@@ -228,10 +228,10 @@ bool ReadCsvParametersHelper<%s>(const csv::CSVRow & row, %s & data){
 #include "%s"
 
 template<typename DataStruct>
-bool ReadCsvParametersHelper(const csv::CSVRow &, DataStruct &){return false;}
+bool CSVReaderHelper(const csv::CSVRow &, DataStruct &){return false;}
 
 template<typename DataStruct>
-bool ReadCsvnParameters2Vector(const char * fileName, std::vector<DataStruct> & vec_data ){
+bool CSVReader2Vec(const char * fileName, std::vector<DataStruct> & vec_data ){
     bool flag = true;
     csv::CSVReader reader(fileName, csv::DEFAULT_CSV_STRICT);    
     csv::CSVRow row;
@@ -239,7 +239,7 @@ bool ReadCsvnParameters2Vector(const char * fileName, std::vector<DataStruct> & 
     while (reader.read_row(row)) {
         
         std::memset(&data, 0, sizeof(DataStruct));;
-        if( ReadCsvParametersHelper<DataStruct>(row, data) ){
+        if( CSVReaderHelper<DataStruct>(row, data) ){
             vec_data.push_back(data);
         }else{
              flag = false;
@@ -256,7 +256,7 @@ bool ReadCsvnParameters2Vector(const char * fileName, std::vector<DataStruct> & 
 
 """
 
-        h_tpl = "template<>\nbool ReadCsvParametersHelper<%s>(const csv::CSVRow & row, %s & data);\n\n"
+        h_tpl = "template<>\nbool CSVReaderHelper<%s>(const csv::CSVRow & row, %s & data);\n\n"
 
         if not isinstance(include_header, str):
             include_header = self.datastruct_file

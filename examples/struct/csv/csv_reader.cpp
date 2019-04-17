@@ -3,7 +3,7 @@
 #include <limits>
 
 template<>
-bool ReadCsvParametersHelper<StockInfo>(const csv::CSVRow & row, StockInfo & data){
+bool CSVReaderHelper<StockInfo>(const csv::CSVRow & row, StockInfo & data){
     bool flag = true;
 
        
@@ -61,7 +61,7 @@ bool ReadCsvParametersHelper<StockInfo>(const csv::CSVRow & row, StockInfo & dat
 }
 
 template<>
-bool ReadCsvParametersHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAdapterMarketDataLV5Field & data){
+bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAdapterMarketDataLV5Field & data){
     bool flag = true;
 
        
