@@ -33,7 +33,7 @@ namespace csv {
 
     /**
     * @class CSVField
-    * @brief Data type representing individual CSV values. 
+    * @brief Data type representing individual CSV values.
     *        CSVFields can be obtained by using CSVRow::operator[]
     */
     class CSVField {
@@ -62,7 +62,7 @@ namespace csv {
                 return static_cast<T>(this->value);
             }
 
-            throw std::runtime_error("Attempted to convert a value of type " + 
+            throw std::runtime_error("Attempted to convert a value of type " +
                 internals::type_name(type()) + " to " + internals::type_name(dest_type) + ".");
         }
 
@@ -86,7 +86,7 @@ namespace csv {
     };
 
     /**
-     * @class CSVRow 
+     * @class CSVRow
      * @brief Data structure for representing CSV rows
      *
      * Internally, a CSVRow consists of:
@@ -132,63 +132,6 @@ namespace csv {
         CSVField operator[](const std::string&) const;
         csv::string_view get_string_view(size_t n) const;
         operator std::vector<std::string>() const;
-        ///@}
-
-        /** @brief A random access iterator over the contents of a CSV row.
-         *         Each iterator points to a CSVField.
-         */
-        class iterator {
-        public:
-            using value_type = CSVField;
-            using difference_type = int;
-
-            // Using CSVField * as pointer type causes segfaults in MSVC debug builds
-            // but using shared_ptr as pointer type won't compile in g++
-            #ifdef _MSC_BUILD
-            using pointer = std::shared_ptr<CSVField> ;
-            #else
-            using pointer = CSVField * ;
-            #endif
-
-            using reference = CSVField & ;
-            using iterator_category = std::random_access_iterator_tag;
-
-            iterator(const CSVRow*, int i);
-
-            reference operator*() const;
-            pointer operator->() const;
-
-            iterator operator++(int);
-            iterator& operator++();
-            iterator operator--(int);
-            iterator& operator--();
-            iterator operator+(difference_type n) const;
-            iterator operator-(difference_type n) const;
-
-            bool operator==(const iterator&) const;
-            bool operator!=(const iterator& other) const { return !operator==(other); }
-
-            #ifndef NDEBUG
-            friend CSVRow;
-            #endif
-
-        private:
-            const CSVRow * daddy = nullptr;            // Pointer to parent
-            std::shared_ptr<CSVField> field = nullptr; // Current field pointed at
-            int i = 0;                                 // Index of current field
-        };
-
-        /** @brief A reverse iterator over the contents of a CSVRow. */
-        using reverse_iterator = std::reverse_iterator<iterator>;
-
-        /** @name Iterators
-         *  @brief Each iterator points to a CSVField object.
-         */
-        ///@{
-        iterator begin() const;
-        iterator end() const;
-        reverse_iterator rbegin() const;
-        reverse_iterator rend() const;
         ///@}
 
     private:

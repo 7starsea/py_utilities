@@ -1,7 +1,6 @@
 #include <cassert>
 
 #include "data_type.h"
-#include "compatibility.hpp"
 
 /** @file
  *  @brief Provides numeric parsing functionality
@@ -28,11 +27,11 @@ namespace csv {
         };
         #endif
 
-        constexpr long double _INT_MAX = (long double)std::numeric_limits<int>::max();
-        constexpr long double _LONG_MAX = (long double)std::numeric_limits<long int>::max();
-        constexpr long double _LONG_LONG_MAX = (long double)std::numeric_limits<long long int>::max();
+        const long double _INT_MAX = (long double)std::numeric_limits<int>::max();
+        const long double _LONG_MAX = (long double)std::numeric_limits<long int>::max();
+        const long double _LONG_LONG_MAX = (long double)std::numeric_limits<long long int>::max();
 
-        /** Given a pointer to the start of what is start of 
+        /** Given a pointer to the start of what is start of
          *  the exponential part of a number written (possibly) in scientific notation
          *  parse the exponent
          */
@@ -47,11 +46,11 @@ namespace csv {
                 if (out) *out = coeff * pow10(exponent);
                 return CSV_DOUBLE;
             }
-            
+
             return CSV_STRING;
         }
 
-        /** Given the absolute value of an integer, determine what numeric type 
+        /** Given the absolute value of an integer, determine what numeric type
          *  it fits in
          */
         inline DataType _determine_integral_type(const long double& number) {

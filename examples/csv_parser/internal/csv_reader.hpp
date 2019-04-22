@@ -9,10 +9,8 @@
 #include <vector>
 
 #include "constants.hpp"
-#include "data_type.h"
 #include "csv_format.hpp"
 #include "csv_row.hpp"
-#include "compatibility.hpp"
 #include "giant_string_buffer.hpp"
 
 /** @namespace csv

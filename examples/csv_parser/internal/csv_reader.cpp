@@ -3,7 +3,6 @@
 #include <cstring>  // For read_csv()
 #include <sstream>
 
-#include "constants.hpp"
 #include "csv_reader.hpp"
 
 /** @file
