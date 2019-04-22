@@ -24,113 +24,9 @@ namespace csv {
             return ret.str();
         }
 
-        //
-        // CSVGuesser
-        //
-        void CSVGuesser::Guesser::bad_row_handler(std::vector<std::string> record) {
-            /** Helps CSVGuesser tally up the size of rows encountered while parsing */
-            if (row_tally.find(record.size()) != row_tally.end()) row_tally[record.size()]++;
-            else {
-                row_tally[record.size()] = 1;
-                row_when[record.size()] = this->row_num + 1;
-            }
-        }
+  }
 
-        void CSVGuesser::guess_delim() {
-            /** Guess the delimiter of a CSV by scanning the first 100 lines by
-            *  First assuming that the header is on the first row
-            *  If the first guess returns too few rows, then we move to the second
-            *  guess method
-            */
-            if (!first_guess()) second_guess();
-        }
 
-        bool CSVGuesser::first_guess() {
-            /** Guess the delimiter of a delimiter separated values file
-             *  by scanning the first 100 lines
-             *
-             *  - "Winner" is based on which delimiter has the most number
-             *    of correctly parsed rows + largest number of columns
-             *  -  **Note:** Assumes that whatever the dialect, all records
-             *     are newline separated
-             *
-             *  Returns True if guess was a good one and second guess isn't needed
-             */
-
-            CSVFormat format = DEFAULT_CSV;
-            char current_delim{ ',' };
-            RowCount max_rows = 0;
-            RowCount temp_rows = 0;
-            size_t max_cols = 0;
-
-            for (size_t i = 0; i < delims.size(); i++) {
-                format.delim = delims[i];
-                CSVReader guesser(this->filename, format);
-
-                // WORKAROUND on Unix systems because certain newlines
-                // get double counted
-                // temp_rows = guesser.correct_rows;
-                temp_rows = std::min(guesser.correct_rows, (RowCount)100);
-                if ((guesser.row_num >= max_rows) &&
-                    (guesser.get_col_names().size() > max_cols)) {
-                    max_rows = temp_rows;
-                    max_cols = guesser.get_col_names().size();
-                    current_delim = delims[i];
-                }
-            }
-
-            this->delim = current_delim;
-
-            // If there are only a few rows/columns, trying guessing again
-            return (max_rows > 10 && max_cols > 2);
-        }
-
-        void CSVGuesser::second_guess() {
-            /** For each delimiter, find out which row length was most common.
-             *  The delimiter with the longest mode row length wins.
-             *  Then, the line number of the header row is the first row with
-             *  the mode row length.
-             */
-
-            CSVFormat format = DEFAULT_CSV;
-            size_t max_rlen = 0;
-            size_t header = 0;
-
-            for (auto it = delims.begin(); it != delims.end(); ++it) {
-                format.delim = *it;
-                Guesser guess(format);
-                guess.read_csv(filename, 500000);
-
-                // Most common row length
-                auto max = std::max_element(guess.row_tally.begin(), guess.row_tally.end(),
-                    [](const std::pair<size_t, size_t>& x,
-                        const std::pair<size_t, size_t>& y) {
-                    return x.second < y.second; });
-
-                // Idea: If CSV has leading comments, actual rows don't start
-                // until later and all actual rows get rejected because the CSV
-                // parser mistakenly uses the .size() of the comment rows to
-                // judge whether or not they are valid.
-                // 
-                // The first part of the if clause means we only change the header
-                // row if (number of rejected rows) > (number of actual rows)
-                if (max->second > guess.records.size() &&
-                    (max->first > max_rlen)) {
-                    max_rlen = max->first;
-                    header = guess.row_when[max_rlen];
-                }
-            }
-
-            this->header_row = static_cast<int>(header);
-        }
-    }
-
-    /** @brief Guess the delimiter used by a delimiter-separated values file */
-    CSVFormat guess_format(const std::string& filename) {
-        internals::CSVGuesser guesser(filename);
-        guesser.guess_delim();
-        return { guesser.delim, '"', guesser.header_row };
-    }
 
     std::vector<CSVReader::ParseFlags> CSVReader::make_flags() const {
         /** Create a vector v where each index i corresponds to the
@@ -173,18 +69,7 @@ namespace csv {
         }
     };
 
-    /**
-     *  @brief Allows parsing in-memory sources (by calling feed() and end_feed()).
-     */
-    CSVReader::CSVReader(CSVFormat format) :
-        delimiter(format.delim), quote_char(format.quote_char),
-        header_row(format.header), strict(format.strict),
-        unicode_bom_scan(!format.unicode_detect) {
-        if (!format.col_names.empty()) {
-            this->header_row = -1;
-            this->col_names = std::make_shared<internals::ColNames>(format.col_names);
-        }
-    };
+
 
     /**
      *  @brief Allows reading a CSV file in chunks, using overlapped
@@ -202,9 +87,6 @@ namespace csv {
      *
      */
     CSVReader::CSVReader(const std::string& filename, CSVFormat format) {
-        if (format.delim == '\0')
-            format = guess_format(filename);
-
         this->col_names = std::make_shared<internals::ColNames>(format.col_names);
         delimiter = format.delim;
         quote_char = format.quote_char;
@@ -402,7 +284,7 @@ namespace csv {
      * @param[in] nrows Number of rows to read. Set to -1 to read entire file.
      *
      * @see CSVReader::read_row()
-     * 
+     *
      */
     void CSVReader::read_csv(const std::string& filename, const size_t& bytes) {
         if (!this->infile) {

@@ -17,7 +17,7 @@ namespace csv {
         }
 
         const int PAGE_SIZE = getpagesize();
-    #elif defined(__linux__) 
+    #elif defined(__linux__)
         #include <unistd.h>
         const int PAGE_SIZE = getpagesize();
     #else
@@ -35,9 +35,6 @@ namespace csv {
     *         many bytes are read at a time
     */
     const size_t ITERATION_CHUNK_SIZE = 10000000; // 10MB
-
-    /** @brief A dummy variable used to indicate delimiter should be guessed */
-    const CSVFormat GUESS_CSV = { '\0', '"', 0, {}, false, true };
 
     /** @brief RFC 4180 CSV format */
     const CSVFormat DEFAULT_CSV = { ',', '"', 0, {}, false, true };

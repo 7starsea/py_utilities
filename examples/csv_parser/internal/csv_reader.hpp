@@ -49,45 +49,19 @@ namespace csv {
          * **Using with <algorithm> library:**
          * \snippet tests/test_csv_iterator.cpp CSVReader Iterator 2
          */
-        class iterator {
-        public:
-            using value_type = CSVRow;
-            using difference_type = std::ptrdiff_t;
-            using pointer = CSVRow * ;
-            using reference = CSVRow & ;
-            using iterator_category = std::input_iterator_tag;
 
-            iterator() = default;
-            iterator(CSVReader* reader) : daddy(reader) {};
-            iterator(CSVReader*, CSVRow&&);
-
-            reference operator*();
-            pointer operator->();
-            iterator& operator++(); // Pre-inc
-            iterator operator++(int); // Post-inc
-            iterator& operator--();
-
-            bool operator==(const iterator&) const;
-            bool operator!=(const iterator& other) const { return !operator==(other); }
-
-        private:
-            CSVReader * daddy = nullptr;  // Pointer to parent
-            CSVRow row;                   // Current row
-            RowCount i = 0;               // Index of current row
-        };
 
         /** @name Constructors
          *  Constructors for iterating over large files and parsing in-memory sources.
          */
          ///@{
-        CSVReader(const std::string& filename, CSVFormat format = GUESS_CSV);
-        CSVReader(CSVFormat format = DEFAULT_CSV);
+        CSVReader(const std::string& filename, CSVFormat format);
         ///@}
 
         CSVReader(const CSVReader&) = delete; // No copy constructor
-        CSVReader(CSVReader&&) = default;     // Move constructor
+        CSVReader(CSVReader&&) = delete;     // Move constructor
         CSVReader& operator=(const CSVReader&) = delete; // No copy assignment
-        CSVReader& operator=(CSVReader&& other) = default;
+        CSVReader& operator=(CSVReader&& other) = delete;
         ~CSVReader() { this->close(); }
 
         /** @name Reading In-Memory Strings
@@ -102,12 +76,7 @@ namespace csv {
         void end_feed();
         ///@}
 
-        /** @name Retrieving CSV Rows */
-        ///@{
-        bool read_row(CSVRow &row);
-        iterator begin();
-        iterator end();
-        ///@}
+        bool read_row(CSVRow &row) ;
 
         /** @name CSV Metadata */
         ///@{
@@ -115,7 +84,7 @@ namespace csv {
         std::vector<std::string> get_col_names() const;
         int index_of(const std::string& col_name) const;
         ///@}
-        
+
         /** @name CSV Metadata: Attributes */
         ///@{
         RowCount row_num = 0;        /**< @brief How many lines have
@@ -213,38 +182,10 @@ namespace csv {
 
         std::mutex feed_lock;                /**< @brief Allow only one worker to write */
         std::condition_variable feed_cond;   /**< @brief Wake up worker */
-        ///@} 
+        ///@}
 
         /**@}*/ // End of parser internals
     };
 
-    namespace internals {
-        /** Class for guessing the delimiter & header row number of CSV files */
-        class CSVGuesser {
-            struct Guesser : public CSVReader {
-                using CSVReader::CSVReader;
-                void bad_row_handler(std::vector<std::string> record) override;
-                friend CSVGuesser;
 
-                // Frequency counter of row length
-                std::unordered_map<size_t, size_t> row_tally = { { 0, 0 } };
-
-                // Map row lengths to row num where they first occurred
-                std::unordered_map<size_t, size_t> row_when = { { 0, 0 } };
-            };
-
-        public:
-            CSVGuesser(const std::string& _filename) : filename(_filename) {};
-            std::vector<char> delims = { ',', '|', '\t', ';', '^' };
-            void guess_delim();
-            bool first_guess();
-            void second_guess();
-
-            char delim;
-            int header_row = 0;
-
-        private:
-            std::string filename;
-        };
-    }
 }

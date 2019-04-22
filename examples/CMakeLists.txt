@@ -4,7 +4,7 @@ project(examples)
 
 add_subdirectory(csv_parser)
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/csv_parser/)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/)
 
 add_subdirectory(struct/csv)
 

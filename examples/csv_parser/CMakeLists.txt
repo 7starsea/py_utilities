@@ -25,10 +25,7 @@ set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/internal/)
 
 set(SOURCES
 	${SOURCE_DIR}/csv_reader.cpp
-	${SOURCE_DIR}/csv_reader_iterator.cpp
 	${SOURCE_DIR}/csv_row.cpp
-	${SOURCE_DIR}/csv_stat.cpp
-	${SOURCE_DIR}/csv_utility.cpp
 	${SOURCE_DIR}/data_type.cpp
 	${SOURCE_DIR}/giant_string_buffer.cpp
 )
