@@ -14,7 +14,7 @@ namespace csv {
         std::string format_row(const std::vector<std::string>& row, const std::string& delim) {
             /** Print a CSV row */
             std::stringstream ret;
-            for (size_t i = 0; i < row.size(); i++) {
+            for (size_t i = 0; i < row.size(); ++i) {
                 ret << row[i];
                 if (i + 1 < row.size()) ret << delim;
                 else ret << std::endl;
@@ -34,7 +34,7 @@ namespace csv {
          */
 
         std::vector<ParseFlags> ret;
-        for (int i = -128; i < 128; i++) {
+        for (int i = -128; i < 128; ++i) {
             char ch = char(i);
 
             if (ch == this->delimiter)
@@ -50,7 +50,7 @@ namespace csv {
         return ret;
     }
 
-    void CSVReader::bad_row_handler(std::vector<std::string> record) {
+    void CSVReader::bad_row_handler(const std::vector<std::string> & record) {
         /** Handler for rejected rows (too short or too long). This does nothing
          *  unless strict parsing was set, in which case it throws an eror.
          *  Subclasses of CSVReader may easily override this to provide
@@ -116,7 +116,7 @@ namespace csv {
      */
     int CSVReader::index_of(const std::string& col_name) const {
         auto _col_names = this->get_col_names();
-        for (size_t i = 0; i < _col_names.size(); i++)
+        for (size_t i = 0; i < _col_names.size(); ++i)
             if (_col_names[i] == col_name) return (int)i;
 
         return CSV_NOT_FOUND;
@@ -195,10 +195,12 @@ namespace csv {
 
                         if (next_ch == QUOTE)
                             ++i;  // Case: Two consecutive quotes
-                        else if (this->strict)
+                        else if (this->strict){
+			    const string_view & sv = in.substr(i, 100); /// this->get_string_view(i);
                             throw std::runtime_error("Unescaped single quote around line " +
                                 std::to_string(this->correct_rows) + " near:\n" +
-                                std::string(in.substr(i, 100)));
+                                std::string(sv.data(), sv.size()));
+			}
                     }
                 }
             }

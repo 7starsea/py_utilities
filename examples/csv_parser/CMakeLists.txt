@@ -20,7 +20,7 @@ endif(MSVC)
 
 message("CSV for C++ ${CMAKE_BUILD_TYPE} Build with ${CMAKE_CXX_COMPILER}")
 
-set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/internal/)
+set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/)
 
 
 set(SOURCES

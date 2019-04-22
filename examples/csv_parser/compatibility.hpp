@@ -1,5 +1,5 @@
 #pragma once
-#include "../external/string_view.hpp"
+#include "external/string_view.hpp"
 
 #define SUPPRESS_UNUSED_WARNING(x) (void)x
 

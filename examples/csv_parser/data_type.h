@@ -48,7 +48,7 @@ namespace csv {
                 ret = 1;
             T iterations = n > 0 ? n : -n;
             
-            for (T i = 0; i < iterations; i++) {
+            for (T i = 0; i < iterations; ++i) {
                 ret *= multiplicand;
             }
 

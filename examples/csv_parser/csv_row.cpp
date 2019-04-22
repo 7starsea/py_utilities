@@ -10,7 +10,7 @@ namespace csv {
 
         ColNames::ColNames(const std::vector<std::string>& _cnames)
             : col_names(_cnames) {
-            for (size_t i = 0; i < _cnames.size(); i++) {
+            for (size_t i = 0; i < _cnames.size(); ++i) {
                 this->col_pos[_cnames[i]] = i;
             }
         }
@@ -92,8 +92,10 @@ namespace csv {
          */
 
         std::vector<std::string> ret;
-        for (size_t i = 0; i < size(); i++)
-            ret.push_back(std::string(this->get_string_view(i)));
+        for (size_t i = 0; i < size(); ++i){
+	    const string_view & sv = this->get_string_view(i);
+            ret.push_back(std::string(sv.data(), sv.size()));
+	}
 
         return ret;
     }

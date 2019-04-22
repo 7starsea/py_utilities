@@ -158,7 +158,7 @@ namespace csv {
                         // Build current number
                         unsigned digit = current - '0';
                         if (prob_float) {
-                            decimal_part += digit / pow10(++places_after_decimal);
+                            decimal_part += digit / pow10((int)(++places_after_decimal));
                         }
                         else {
                             integral_part = (integral_part * 10) + digit;

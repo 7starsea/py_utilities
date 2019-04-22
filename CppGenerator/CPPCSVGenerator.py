@@ -224,7 +224,7 @@ bool CSVReaderHelper<%s>(const csv::CSVRow & row, %s & data){
 #include <string>
 #include <fstream>
 #include <cstring>
-#include "csv_parser/csv.hpp"
+#include "csv_parser/csv_reader.hpp"
 #include "%s"
 
 template<typename DataStruct>

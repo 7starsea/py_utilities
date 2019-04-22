@@ -135,7 +135,7 @@ namespace csv {
         */
         ///@{
         void write_record();
-        virtual void bad_row_handler(std::vector<std::string>);
+        void bad_row_handler(const std::vector<std::string> &);
         ///@}
 
         /** @name CSV Settings **/

@@ -144,7 +144,7 @@ namespace csv {
     // get() specializations
     template<>
     inline std::string CSVField::get<std::string>() {
-        return std::string(this->sv);
+        return std::string(this->sv.data(), this->sv.size());
     }
 
     template<>
