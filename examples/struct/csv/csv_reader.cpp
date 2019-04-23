@@ -11,8 +11,8 @@ bool CSVReaderHelper<StockInfo>(const csv::CSVRow & row, StockInfo & data){
     if( ind >= 0 ){   
         if(row[ind].is_str()){
             
-            if(row["stock_id"].get().size() <= sizeof(data.stock_id)-1){
-                strncpy(data.stock_id, row["stock_id"].get<std::string>().c_str(), sizeof(data.stock_id)-1);
+            if(row[ind].get().size() <= sizeof(data.stock_id)-1){
+                strncpy(data.stock_id, row[ind].get<std::string>().c_str(), sizeof(data.stock_id)-1);
             }else{
                 std::cerr<<">>> String is too bigger for char stock_id[] with py_key stock_id."<<std::endl;
                 flag = false;
@@ -32,7 +32,7 @@ bool CSVReaderHelper<StockInfo>(const csv::CSVRow & row, StockInfo & data){
     ind = row.find_column("sett_price");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.sett_price = (double)(row["sett_price"].get<double>());
+            data.sett_price = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: sett_price with type: double in DataStruct: StockInfo."<<std::endl;
             flag = false;
@@ -47,7 +47,7 @@ bool CSVReaderHelper<StockInfo>(const csv::CSVRow & row, StockInfo & data){
     ind = row.find_column("long_vol");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.long_vol = (int)(row["long_vol"].get<int>());
+            data.long_vol = (int)(row[ind].get<int>());
         }else{
             std::cerr<<">>> Failed to resolve key: long_vol with type: int in DataStruct: StockInfo."<<std::endl;
             flag = false;
@@ -62,7 +62,7 @@ bool CSVReaderHelper<StockInfo>(const csv::CSVRow & row, StockInfo & data){
     ind = row.find_column("tod_long_vol");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.tod_long_vol = (int)(row["tod_long_vol"].get<int>());
+            data.tod_long_vol = (int)(row[ind].get<int>());
         }else{
             std::cerr<<">>> Failed to resolve key: tod_long_vol with type: int in DataStruct: StockInfo."<<std::endl;
             flag = false;
@@ -77,7 +77,7 @@ bool CSVReaderHelper<StockInfo>(const csv::CSVRow & row, StockInfo & data){
     ind = row.find_column("yd_long_vol");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.yd_long_vol = (int)(row["yd_long_vol"].get<int>());
+            data.yd_long_vol = (int)(row[ind].get<int>());
         }else{
             std::cerr<<">>> Failed to resolve key: yd_long_vol with type: int in DataStruct: StockInfo."<<std::endl;
             flag = false;
@@ -99,8 +99,8 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     if( ind >= 0 ){   
         if(row[ind].is_str()){
             
-            if(row["instrument_id"].get().size() <= sizeof(data.instrument_id)-1){
-                strncpy(data.instrument_id, row["instrument_id"].get<std::string>().c_str(), sizeof(data.instrument_id)-1);
+            if(row[ind].get().size() <= sizeof(data.instrument_id)-1){
+                strncpy(data.instrument_id, row[ind].get<std::string>().c_str(), sizeof(data.instrument_id)-1);
             }else{
                 std::cerr<<">>> String is too bigger for char instrument_id[] with py_key instrument_id."<<std::endl;
                 flag = false;
@@ -121,8 +121,8 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     if( ind >= 0 ){   
         if(row[ind].is_str()){
             
-            if(row["update_time"].get().size() <= sizeof(data.update_time)-1){
-                strncpy(data.update_time, row["update_time"].get<std::string>().c_str(), sizeof(data.update_time)-1);
+            if(row[ind].get().size() <= sizeof(data.update_time)-1){
+                strncpy(data.update_time, row[ind].get<std::string>().c_str(), sizeof(data.update_time)-1);
             }else{
                 std::cerr<<">>> String is too bigger for char update_time[] with py_key update_time."<<std::endl;
                 flag = false;
@@ -142,7 +142,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("stock_update_time");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.stock_update_time = (long long)(row["stock_update_time"].get<long long>());
+            data.stock_update_time = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: stock_update_time with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -157,7 +157,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("market_status");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.market_status = (int)(row["market_status"].get<int>());
+            data.market_status = (int)(row[ind].get<int>());
         }else{
             std::cerr<<">>> Failed to resolve key: market_status with type: int in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -172,7 +172,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("update_mil_sec");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.update_mil_sec = (int)(row["update_mil_sec"].get<int>());
+            data.update_mil_sec = (int)(row[ind].get<int>());
         }else{
             std::cerr<<">>> Failed to resolve key: update_mil_sec with type: int in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -187,7 +187,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("last_price");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.last_price = (double)(row["last_price"].get<double>());
+            data.last_price = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: last_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -202,7 +202,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_price1");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.bid_price[0] = (double)(row["bid_price1"].get<double>());
+            data.bid_price[0] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -217,7 +217,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_price2");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.bid_price[1] = (double)(row["bid_price2"].get<double>());
+            data.bid_price[1] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -232,7 +232,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_price3");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.bid_price[2] = (double)(row["bid_price3"].get<double>());
+            data.bid_price[2] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -247,7 +247,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_price4");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.bid_price[3] = (double)(row["bid_price4"].get<double>());
+            data.bid_price[3] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -262,7 +262,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_price5");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.bid_price[4] = (double)(row["bid_price5"].get<double>());
+            data.bid_price[4] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -277,7 +277,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_price1");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.ask_price[0] = (double)(row["ask_price1"].get<double>());
+            data.ask_price[0] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -292,7 +292,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_price2");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.ask_price[1] = (double)(row["ask_price2"].get<double>());
+            data.ask_price[1] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -307,7 +307,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_price3");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.ask_price[2] = (double)(row["ask_price3"].get<double>());
+            data.ask_price[2] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -322,7 +322,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_price4");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.ask_price[3] = (double)(row["ask_price4"].get<double>());
+            data.ask_price[3] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -337,7 +337,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_price5");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.ask_price[4] = (double)(row["ask_price5"].get<double>());
+            data.ask_price[4] = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_price with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -352,7 +352,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_vol1");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.bid_vol[0] = (long long)(row["bid_vol1"].get<long long>());
+            data.bid_vol[0] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -367,7 +367,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_vol2");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.bid_vol[1] = (long long)(row["bid_vol2"].get<long long>());
+            data.bid_vol[1] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -382,7 +382,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_vol3");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.bid_vol[2] = (long long)(row["bid_vol3"].get<long long>());
+            data.bid_vol[2] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -397,7 +397,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_vol4");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.bid_vol[3] = (long long)(row["bid_vol4"].get<long long>());
+            data.bid_vol[3] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -412,7 +412,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("bid_vol5");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.bid_vol[4] = (long long)(row["bid_vol5"].get<long long>());
+            data.bid_vol[4] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: bid_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -427,7 +427,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_vol1");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.ask_vol[0] = (long long)(row["ask_vol1"].get<long long>());
+            data.ask_vol[0] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -442,7 +442,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_vol2");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.ask_vol[1] = (long long)(row["ask_vol2"].get<long long>());
+            data.ask_vol[1] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -457,7 +457,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_vol3");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.ask_vol[2] = (long long)(row["ask_vol3"].get<long long>());
+            data.ask_vol[2] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -472,7 +472,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_vol4");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.ask_vol[3] = (long long)(row["ask_vol4"].get<long long>());
+            data.ask_vol[3] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -487,7 +487,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("ask_vol5");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.ask_vol[4] = (long long)(row["ask_vol5"].get<long long>());
+            data.ask_vol[4] = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: ask_vol with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -502,7 +502,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("trade_volume");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.trade_volume = (long long)(row["trade_volume"].get<long long>());
+            data.trade_volume = (long long)(row[ind].get<long long>());
         }else{
             std::cerr<<">>> Failed to resolve key: trade_volume with type: long long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -517,7 +517,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("last_trade_volume");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.last_trade_volume = (long)(row["last_trade_volume"].get<long>());
+            data.last_trade_volume = (long)(row[ind].get<long>());
         }else{
             std::cerr<<">>> Failed to resolve key: last_trade_volume with type: long in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -532,7 +532,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("turn_over");
     if( ind >= 0 ){   
         if(row[ind].is_num()){
-            data.turn_over = (double)(row["turn_over"].get<double>());
+            data.turn_over = (double)(row[ind].get<double>());
         }else{
             std::cerr<<">>> Failed to resolve key: turn_over with type: double in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;
@@ -547,7 +547,7 @@ bool CSVReaderHelper<QwAdapterMarketDataLV5Field>(const csv::CSVRow & row, QwAda
     ind = row.find_column("open_interset");
     if( ind >= 0 ){   
         if(row[ind].is_int()){
-            data.open_interset = (int)(row["open_interset"].get<int>());
+            data.open_interset = (int)(row[ind].get<int>());
         }else{
             std::cerr<<">>> Failed to resolve key: open_interset with type: int in DataStruct: QwAdapterMarketDataLV5Field."<<std::endl;
             flag = false;

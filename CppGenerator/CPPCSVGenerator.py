@@ -32,23 +32,26 @@ def internal_csv_reader(cpp_key, py_key, raw_type):
     cpp = ''
     if raw_type in ['char', 'unsigned char', 'str']:
         if raw_type == 'unsigned char':
-            cpp = 'data.%s = row["%s"].get<std::string>()[0];' % (cpp_key, py_key)
+            # cpp = 'data.%s = row["%s"].get<std::string>()[0];' % (cpp_key, py_key)
+            cpp = 'data.%s = row[ind].get<std::string>()[0];' % (cpp_key)
         else:
-            cpp = 'strncpy(data.%s, row["%s"].get<std::string>().c_str(), sizeof(data.%s)-1);' % (cpp_key, py_key, cpp_key)
+            # cpp = 'strncpy(data.%s, row["%s"].get<std::string>().c_str(), sizeof(data.%s)-1);' % (cpp_key, py_key, cpp_key)
+            cpp = 'strncpy(data.%s, row[ind].get<std::string>().c_str(), sizeof(data.%s)-1);' % (cpp_key, cpp_key)
 
             check_str_size_fmt = """
-            if(row["%s"].get().size() <= sizeof(data.%s)-1){
+            if(row[ind].get().size() <= sizeof(data.%s)-1){
                 %s
             }else{
                 std::cerr<<">>> String is too bigger for char %s[] with py_key %s."<<std::endl;
                 flag = false;
             }
 """
-            cpp = check_str_size_fmt % (py_key, cpp_key, cpp, cpp_key, py_key)
+            cpp = check_str_size_fmt % (cpp_key, cpp, cpp_key, py_key)
 
     elif raw_type in internal_csv_reader_map:
         methods = internal_csv_reader_map[raw_type]
-        cpp = 'data.%s = (%s)(row["%s"].%s());' % (cpp_key, raw_type, py_key, methods[0])
+        # cpp = 'data.%s = (%s)(row["%s"].%s());' % (cpp_key, raw_type, py_key, methods[0])
+        cpp = 'data.%s = (%s)(row[ind].%s());' % (cpp_key, raw_type, methods[0])
     else:
         print('Unknow csv reader type:', raw_type)
         exit(-1)
