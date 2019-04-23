@@ -37,12 +37,12 @@ def internal_csv_reader(cpp_key, py_key, raw_type):
             cpp = 'strncpy(data.%s, row["%s"].get<std::string>().c_str(), sizeof(data.%s)-1);' % (cpp_key, py_key, cpp_key)
 
             check_str_size_fmt = """
-        if(row["%s"].get().size() <= sizeof(data.%s)-1){
-            %s
-        }else{
-            std::cerr<<">>> String is too bigger for char %s[] with py_key %s."<<std::endl;
-            flag = false;
-        }
+            if(row["%s"].get().size() <= sizeof(data.%s)-1){
+                %s
+            }else{
+                std::cerr<<">>> String is too bigger for char %s[] with py_key %s."<<std::endl;
+                flag = false;
+            }
 """
             cpp = check_str_size_fmt % (py_key, cpp_key, cpp, cpp_key, py_key)
 
@@ -150,17 +150,20 @@ class CPPCsvWriterGenerator(CPPGeneratorBase):
     def _csv_reader(self, keys, struct_id):
         cpp = """template<>
 bool CSVReaderHelper<%s>(const csv::CSVRow & row, %s & data){
-    bool flag = true;
+    bool flag = true; int ind = -1;
 """
         cpp %= (struct_id, struct_id)
 
         tpl_fmt = """
-    [init_impl]   
-    if(row["%s"].%s()){
-        [core_impl]
-    }else{
-        %s
-    }
+    [init_impl]
+    ind = row.find_column("%s");
+    if( ind >= 0 ){   
+        if(row[ind].%s()){
+            [core_impl]
+        }else{
+            %s
+        }
+    }%s
     
 """
         for key in keys:
@@ -176,11 +179,8 @@ bool CSVReaderHelper<%s>(const csv::CSVRow & row, %s & data){
             has_valid_type += '\t\t\tflag = false;'
             has_valid_type %= (tmpKey, key[2], struct_id)
 
-            # if self.check_key_when_read:
-            #     has_member = 'else{\n\t\tstd::cerr<<">>> Failed to find key: %s in DataStruct: %s."<<std::endl;\n\t\tflag = false;\n\t}'
-            #     has_member %= (tmpKey, struct_id)
-            # else:
-            #     has_member = ''
+            has_member = 'else{\n\t\tstd::cerr<<">>> Failed to find key: %s in DataStruct: %s."<<std::endl;\n\t\tflag = false;\n\t}'
+            has_member %= (tmpKey, struct_id)
 
             methods = internal_csv_reader_map[raw_type]
 
@@ -191,12 +191,12 @@ bool CSVReaderHelper<%s>(const csv::CSVRow & row, %s & data){
 
                 for i in range(array_size):
                     arrTmpKey = '%s%d' % (tmpKey, i + 1)
-                    cpp_tpl_code = tpl_fmt % (arrTmpKey, methods[1], has_valid_type)
+                    cpp_tpl_code = tpl_fmt % (arrTmpKey, methods[1], has_valid_type, has_member)
                     cpp_core_impl = internal_csv_reader('%s[%d]' % (key[1], i), arrTmpKey, raw_type)
                     cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', '')
 
             else:
-                cpp_tpl_code = tpl_fmt % (tmpKey, methods[1], has_valid_type)
+                cpp_tpl_code = tpl_fmt % (tmpKey, methods[1], has_valid_type, has_member)
                 cpp_tpl_init = ''
                 cpp_core_impl = internal_csv_reader(key[1], tmpKey, raw_type)
 
@@ -208,10 +208,6 @@ bool CSVReaderHelper<%s>(const csv::CSVRow & row, %s & data){
                 elif key[2] in ["bool", "unsigned char"]:
                     cpp_tpl_init = 'data.%s = (%s)(0);' % (key[1], key[2])
 
-                # if raw_type in ['char', 'str'] and key[1] == self.key_id_map[struct_id]:
-                #     cpp += cpp_core_impl
-                # else:
-                #     cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', cpp_tpl_init)
                 cpp += cpp_tpl_code.replace('[core_impl]', cpp_core_impl).replace('[init_impl]', cpp_tpl_init)
 
         cpp += "\treturn flag;\n}\n\n"

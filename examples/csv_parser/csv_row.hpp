@@ -130,6 +130,8 @@ namespace csv {
         ///@{
         CSVField operator[](size_t n) const;
         CSVField operator[](const std::string&) const;
+        bool has_column(const std::string&) const;
+        size_t find_column(const std::string&) const;
         csv::string_view get_string_view(size_t n) const;
         operator std::vector<std::string>() const;
         ///@}

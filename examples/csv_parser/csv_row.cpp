@@ -84,7 +84,18 @@ namespace csv {
 
         throw std::runtime_error("Can't find a column named " + col_name);
     }
-
+	bool CSVRow::has_column(const std::string&col_name) const{
+		auto col_pos = this->col_names->col_pos.find(col_name);
+        return col_pos != this->col_names->col_pos.end();
+	}
+	
+	size_t CSVRow::find_column(const std::string&col_name) const{
+		auto col_pos = this->col_names->col_pos.find(col_name);
+        if (col_pos != this->col_names->col_pos.end())
+            return col_pos->second;
+		return -1;
+	}
+	
     CSVRow::operator std::vector<std::string>() const {
         /** Convert this CSVRow into a vector of strings.
          *  **Note**: This is a less efficient method of
