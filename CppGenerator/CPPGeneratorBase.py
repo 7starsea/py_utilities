@@ -379,8 +379,8 @@ class CPPGeneratorBase:
     def create_cmakelists(self, libname):
         cmake_lists = """CMAKE_MINIMUM_REQUIRED(VERSION 3.4)
 
-file(GLOB headers ${CMAKE_CURRENT_SOURCE_DIR} *.h)
-file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
+file(GLOB headers *.h *.hpp)
+file(GLOB sources *.cpp)
 
 add_library(%s ${headers} ${sources})
 """
